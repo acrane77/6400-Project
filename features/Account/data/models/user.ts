@@ -1,3 +1,4 @@
+import type { Role } from './roles';
 
 export type User = {
     username: string;
@@ -5,5 +6,5 @@ export type User = {
     lastName: string;
     email: string;
     id: string;
-    // role?: "USER" | "CLIENT" | "DEVELOPER";
+    role?: Role;
 }

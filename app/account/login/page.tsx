@@ -72,7 +72,7 @@ export default function loginPage() {
                 {error && <p className="text-red-600" role="alert">{error}</p>}
                 <div className="text-lg flex flex-row gap-2">
                     <div>
-                        Don't have an accoumt? Click
+                        Don't have an account? Click
                     </div>
                     <a className="text-blue font-semibold hover:underline" href="/account/signup">Here</a>
                     <div>
