@@ -1,0 +1,3 @@
+
+#Presserves the LF end-of-line characters for mac and linux
+* text=auto eol=lf
