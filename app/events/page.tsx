@@ -32,12 +32,17 @@ export default function EventsPage() {
 
     async function loadEvents() {
       try {
-        const response = await fetch(`${API_BASE_URL}/api/events`)
+        const response = await fetch(`/api/events`)
         if (!response.ok) {
           throw new Error(`Request failed (${response.status})`)
         }
 
-        const data: EventResponse[] = await response.json()
+        const result: {
+          success: boolean
+          body: EventResponse[]
+        } = await response.json()
+        const data = result.body
+
         if (isCurrent) {
           setEvents(
             data.sort(

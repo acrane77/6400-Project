@@ -1,7 +1,7 @@
 // src/lib/firebase.ts
 import { initializeApp, getApps, getApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
-import { getFirestore } from "firebase/firestore";
+import { getAuth, connectAuthEmulator } from "firebase/auth";
+import { getFirestore, connectFirestoreEmulator } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 
 const firebaseConfig = {
@@ -21,3 +21,11 @@ export const clientAuth = getAuth(clientApp);
 export const clientDb = getFirestore(clientApp);
 export const clientStorage = getStorage(clientApp);
 export default clientApp;
+
+if (
+    process.env.NODE_ENV === 'development' &&
+    process.env.NEXT_PUBLIC_USE_FIREBASE_EMULATORS === 'true'
+) {
+    connectAuthEmulator(clientAuth, 'http://127.0.0.1:9099');
+    connectFirestoreEmulator(clientDb, '127.0.0.1', 8081);
+}

@@ -10,14 +10,21 @@ import {
 } from 'react'
 import type { User } from '@/features/Account/data/models/user'
 import type { Credentials, SignupDetails } from '../../data/models/Credentials'
+import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
+import { clientAuth } from "@/lib/firebase";
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { signOut } from 'firebase/auth'
+import { onAuthStateChanged } from 'firebase/auth'
+import { useEffect } from 'react'
 
 type AccountContextValue = {
   user: User | null
   isAuthenticated: boolean
   isLoading: boolean
+  isAuthLoading: boolean
   login: (credentials: Credentials) => Promise<User>
   signup: (details: SignupDetails) => Promise<User>
-  logout: () => void
+  logout: () => Promise<void>
 }
 
 type ApiUser = Pick<User, 'id' | 'username' | 'email'>
@@ -55,11 +62,27 @@ async function requestAccount(path: string, body: object): Promise<User> {
 export function AccountProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(false)
+  const [isAuthLoading, setIsAuthLoading] = useState(true)
+
+  console.log('React user:', user)
 
   const login = useCallback(async (credentials: Credentials) => {
     setIsLoading(true)
     try {
-      const account = await requestAccount('login', credentials)
+      const result = await signInWithEmailAndPassword(
+        clientAuth,
+        credentials.email,
+        credentials.password
+      )
+
+      const firebaseUser = result.user
+
+      const account: User = {
+        id: firebaseUser.uid,
+        username: firebaseUser.displayName ?? '',
+        email: firebaseUser.email ?? ''
+      }
+
       setUser(account)
       return account
     } finally {
@@ -67,23 +90,63 @@ export function AccountProvider({ children }: { children: ReactNode }) {
     }
   }, [])
 
-  const signup = useCallback(async (details: SignupDetails) => {
-    setIsLoading(true)
-    try {
-      const account = await requestAccount('signup', details)
-      setUser(account)
-      return account
-    } finally {
-      setIsLoading(false)
-    }
+  const signup = useCallback(async (details: SignupDetails): Promise<User> => {
+      setIsLoading(true);
+  
+      try {
+
+          const result = await createUserWithEmailAndPassword(
+              clientAuth,
+              details.email,
+              details.password
+          );
+
+          await updateProfile(result.user, {
+              displayName: details.username
+          });
+
+          const account: User = {
+              id: result.user.uid,
+              username: details.username,
+              email: details.email,
+              firstName: '',
+              lastName: ''
+          };
+
+          setUser(account);
+          return account;
+
+      } finally {
+          setIsLoading(false);
+      }
+
   }, [])
 
-  const logout = useCallback(() => setUser(null), [])
+  const logout = useCallback(async () => {
+    await signOut(clientAuth)
+    setUser(null)
+  }, [])
 
   const value = useMemo(
-    () => ({ user, isAuthenticated: user !== null, isLoading, login, signup, logout }),
-    [user, isLoading, login, signup, logout],
+    () => ({ user, isAuthenticated: user !== null, isLoading, isAuthLoading, login, signup, logout }),
+    [user, isLoading, isAuthLoading, login, signup, logout],
   )
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(clientAuth, (firebaseUser) => {
+      if (firebaseUser) {
+        setUser({
+          id: firebaseUser.uid,
+          username: firebaseUser.displayName ?? '',
+          email: firebaseUser.email ?? '',
+        })
+      } else {
+        setUser(null)
+      }
+      setIsAuthLoading(false)
+    })
+    return unsubscribe
+  }, [])
 
   return <AccountContext.Provider value={value}>{children}</AccountContext.Provider>
 }

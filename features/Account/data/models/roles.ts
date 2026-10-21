@@ -1,0 +1,1 @@
+export type Role = 'DEVELOPER' | 'ORGANIZER' | 'VOLUNTEER' | 'PARTICIPANT';
