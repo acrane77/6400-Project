@@ -16,7 +16,7 @@ export default function rbacTest() {
                 onChange={(e) => setRole(e.target.value as Role)}
             >
                 <option value="DEVELOPER">Developer</option>
-                <option value="USER">User</option>
+                <option value="ORGANIZER">Organizer</option>
                 <option value="VOLUNTEER">Volunteer</option>
                 <option value="PARTICIPANT">Participant</option>
             </select>

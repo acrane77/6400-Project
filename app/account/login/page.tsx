@@ -16,7 +16,6 @@ export default function loginPage() {
          setError('');
 
          const formData = new FormData(form);
-         
          try {
             await login({
                 email: formData.get('email')?.toString().trim() ?? '',

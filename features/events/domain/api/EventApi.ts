@@ -22,10 +22,17 @@ export class EventApiClient {
 
   async getEvents(): Promise<Response> {
     try {
-      const events = await adminDb.collection('events');
-      return NextResponse.json({ success: true, body: {...events}}, {status: 200})
+      const snapshot = await adminDb.collection('events').get();
+
+      const events = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+
+      return NextResponse.json({ success: true, body: events}, {status: 200})
+
     } catch (error) {
-      return NextResponse.json({error: (error as Error).message }, {status: 500})
+      return NextResponse.json({error: (error as Error).message }, {status: 500});
     }
   }
 
