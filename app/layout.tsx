@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { AccountProvider } from "@/features/Account/presentation/contexts/AccountContext";
+import { EventsProvider } from "@/features/events/presentation/contexts/eventsContext";
+import SiteHeader from "@/core/Components/SiteHeader";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -26,14 +28,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     >
       <body className="min-h-full flex flex-col">
         <AccountProvider>
-        <header className="border-b border-zinc-200 px-6 py-4 dark:border-zinc-700">
-          <nav className="mx-auto flex w-full max-w-4xl gap-6" aria-label="Main navigation">
-            <a className="font-semibold hover:underline" href="/events">Events</a>
-            <a className="font-semibold hover:underline" href="/account/events/create">Create event</a>
-            <a className="font-semibold hover:underline" href="/account/login">Login/Sign-Up</a>
-          </nav>
-        </header>
-        {children}
+          <EventsProvider>
+            <SiteHeader />
+            {children}
+          </EventsProvider>
         </AccountProvider>
       </body>
     </html>
