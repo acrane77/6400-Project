@@ -12,8 +12,8 @@ export class EventRepositoryImpl implements EventRepository {
     return this.apiClient.getEvents();
   }
 
-  getMyEvents(): Promise<Response> {
-    return this.apiClient.getMyEvents();
+  getMyEvents(ownerId: string): Promise<Response> {
+    return this.apiClient.getMyEvents(ownerId);
   }
 
   deleteEvent(id: string, ownerId: string): Promise<Response> {

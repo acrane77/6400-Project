@@ -4,6 +4,8 @@ import "./globals.css";
 import { AccountProvider } from "@/features/Account/presentation/contexts/AccountContext";
 import { EventsProvider } from "@/features/events/presentation/contexts/eventsContext";
 import SiteHeader from "@/core/Components/SiteHeader";
+import { MyEventsProvider } from "@/features/events/presentation/contexts/myEventsContext";
+import { ToastProvider } from "@/core/Components/toast";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -28,10 +30,13 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     >
       <body className="min-h-full flex flex-col">
         <AccountProvider>
-          <EventsProvider>
-            <SiteHeader />
-            {children}
-          </EventsProvider>
+          <ToastProvider />
+          <MyEventsProvider>
+            <EventsProvider>
+              <SiteHeader />
+              {children}
+            </EventsProvider>
+          </MyEventsProvider>
         </AccountProvider>
       </body>
     </html>

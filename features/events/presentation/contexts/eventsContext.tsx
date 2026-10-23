@@ -9,10 +9,10 @@ import {
   useEffect,
   type ReactNode,
 } from 'react'
-import { toast } from 'sonner'
-import { getEventsAPI, createEventAPI } from '../api/apiClient'
+import { getEventsAPI } from '../api/apiClient'
 import type { EventItem } from '@/features/events/data/models/event'
 import { CreateEventRequest } from "../../data/models/createEventRequest";
+import { useMyEvents } from './myEventsContext'
 
 
 type EventsContextValue = {
@@ -40,6 +40,7 @@ type EventProps = {
 }
 
 export function EventsProvider({ children }: EventProps) {
+  const { addEvent: addMyEvent } = useMyEvents()
   const [events, setEvents] = useState<EventItem[]>([])
   const [hasMore, setHasMore] = useState(true)
   const [loading, setLoading] = useState(false);
@@ -48,7 +49,6 @@ export function EventsProvider({ children }: EventProps) {
     setLoading(true)
     const result = await getEventsAPI()
     if (!result.success || !result.events) {
-      toast('Failed to load events')
       setLoading(false);
       return
     }
@@ -68,7 +68,6 @@ export function EventsProvider({ children }: EventProps) {
     setLoading(true);
     const result = await getEventsAPI()
     if (!result.success || !result.events) {
-      toast('Failed to load events')
       setLoading(false);
       return
     }
@@ -81,28 +80,20 @@ export function EventsProvider({ children }: EventProps) {
   }, [events, hasMore])
 
   const addEvent = useCallback(async (event: CreateEventRequest) => {
-
-
     const today = new Date();
     today.setUTCHours(0, 0, 0, 0)
     const eventTime = Date.parse(event.eventDate)
     if (eventTime - today.getTime() < 0) {
       throw new Error('Event can not be in the past');
     }
-    const result = await createEventAPI(event);
-
-    if (!result.success || !result.event) {
-      toast('Failed to create event')
-      throw new Error('Failed to create event. Please try again.')
-    }
-    const newEvent = result.event;
+    const newEvent = await addMyEvent(event)
     setEvents((currentEvents) =>
       sortEventsByDate([
         ...currentEvents.filter((currentEvent) => currentEvent.id !== newEvent.id),
         newEvent,
       ]),
     )
-  }, [])
+  }, [addMyEvent])
 
   const value = useMemo(
     () => ({ events, hasMore, loading, addEvent, loadMoreEvents }),

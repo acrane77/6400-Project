@@ -9,25 +9,23 @@ import {
   useEffect,
   type ReactNode,
 } from 'react'
-import { toast } from 'sonner'
-import { getMyEventsAPI, deleteEventAPI } from '../api/apiClient'
+import { getMyEventsAPI, deleteEventAPI, createEventAPI } from '../api/apiClient'
 import type { EventItem } from '@/features/events/data/models/event'
 import { CreateEventRequest } from "../../data/models/createEventRequest";
-import { useEvents } from './eventsContext'
+import { useAccount } from '@/features/Account/presentation/contexts/AccountContext'
+
 
 
 type MyEventsContextValue = {
   myEvents: EventItem[]
   hasMore: boolean
   loading: boolean
-  addEvent: (event: CreateEventRequest) => Promise<void>
+  addEvent: (event: CreateEventRequest) => Promise<EventItem>
   loadMoreEvents: () => Promise<void>
   deleteEvent: (eventId: string) => Promise<void>
 }
 
 const MyEventsContext = createContext<MyEventsContextValue | undefined>(undefined)
-
-const {addEvent} = useEvents();
 
 function sortEventsByDate(events: EventItem[]) {
   return [...events].sort((first, second) => {
@@ -39,11 +37,12 @@ function sortEventsByDate(events: EventItem[]) {
   })
 }
 
-type EventProps = {
+type MyEventProps = {
   children: ReactNode
 }
 
-export function EventsProvider({ children }: EventProps) {
+export function MyEventsProvider({ children }: MyEventProps) {
+  const { user, isAuthLoading } = useAccount()
   const [myEvents, setMyEvents] = useState<EventItem[]>([])
   const [hasMore, setHasMore] = useState(true)
   const [loading, setLoading] = useState(false);
@@ -52,7 +51,6 @@ export function EventsProvider({ children }: EventProps) {
     setLoading(true)
     const result = await getMyEventsAPI()
     if (!result.success || !result.events) {
-      toast('Failed to load events')
       setLoading(false);
       return
     }
@@ -63,15 +61,15 @@ export function EventsProvider({ children }: EventProps) {
   }, []);
 
   useEffect(() => {
-    if (myEvents.length === 0) void loadInitialEvents()
-  }, [myEvents.length, loadInitialEvents])
+    if (isAuthLoading || !user || myEvents.length > 0) return
+    void loadInitialEvents()
+  }, [isAuthLoading, user, myEvents.length, loadInitialEvents])
 
   const loadMoreEvents = useCallback(async () => {
     if (!hasMore) return;
     setLoading(true);
     const result = await getMyEventsAPI()
     if (!result.success || !result.events) {
-      toast('Failed to load events')
       setLoading(false);
       return
     }
@@ -83,12 +81,27 @@ export function EventsProvider({ children }: EventProps) {
     setLoading(false);
   }, [myEvents, hasMore])
 
+  const addEvent = useCallback(async (event: CreateEventRequest): Promise<EventItem> => {
+    const result = await createEventAPI(event)
+    if (!result.success || !result.event) {
+      throw new Error('Failed to create event. Please try again.')
+    }
+
+    const newEvent = result.event
+    setMyEvents((currentEvents) =>
+      sortEventsByDate([
+        ...currentEvents.filter((currentEvent) => currentEvent.id !== newEvent.id),
+        newEvent,
+      ]),
+    )
+    return newEvent
+  }, [])
+
   const deleteEvent = useCallback(async (eventId: string) => {
    
     const result = await deleteEventAPI(eventId);
 
     if (!result.success) {
-        toast('Failed to create event')
         throw new Error('Failed to create event. Please try again.')
     }
     setMyEvents((currentEvents) =>
@@ -108,6 +121,6 @@ export function EventsProvider({ children }: EventProps) {
 
 export function useMyEvents() {
   const context = useContext(MyEventsContext)
-  if (!context) throw new Error('useEvents must be used within an EventsProvider')
+  if (!context) throw new Error('useMyEvents must be used within a MyEventsProvider')
   return context
 }

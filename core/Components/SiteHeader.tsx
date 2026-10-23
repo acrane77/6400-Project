@@ -11,10 +11,11 @@ export default function SiteHeader() {
       <nav className="mx-auto flex w-full max-w-4xl gap-6" aria-label="Main navigation">
         <a className="font-semibold hover:underline" href="/events">Events</a>
         {!isAuthLoading && isAuthenticated && (
+        <>
         <a className="font-semibold hover:underline" href="/account/events/create">Create event</a>
-        )}
-        {!isAuthLoading && isAuthenticated && (
+        <a className="font-semibold hover:underline" href="/account/events/my-events">My Events</a>
         <button className="font-semibold hover:underline" onClick={logout}>Sign-out</button>
+        </>
         )}
         {!isAuthLoading && !isAuthenticated && (
           <a className="font-semibold hover:underline" href="/account/login">Login/Sign-Up</a>

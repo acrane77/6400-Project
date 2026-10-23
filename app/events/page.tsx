@@ -1,7 +1,3 @@
-import { EventsProvider } from '@/features/events/presentation/contexts/eventsContext'
-import { adminDb } from '@/lib/firebaseAdmin'
-import type { EventItem } from '@/features/events/data/models/event'
-import { connection } from 'next/server'
 import {EventList} from '@/features/events/presentation/components/EventList'
 
 
