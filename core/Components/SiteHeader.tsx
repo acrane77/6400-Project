@@ -5,11 +5,7 @@ import { useAccount } from '../../features/Account/presentation/contexts/Account
 
 export default function SiteHeader() {
   const { isAuthenticated, isAuthLoading, logout } = useAccount()
-  const [isMounted, setIsMounted] = useState(false)
 
-  useEffect(() => {setIsMounted(true)},[])
-
-  if(!isMounted) return;
   return (
     <header className="border-b border-zinc-200 px-6 py-4 dark:border-zinc-700">
       <nav className="mx-auto flex w-full max-w-4xl gap-6" aria-label="Main navigation">

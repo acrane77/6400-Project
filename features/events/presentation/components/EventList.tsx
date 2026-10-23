@@ -22,10 +22,11 @@ export function EventList() {
                     <time className="text-sm text-zinc-600 dark:text-zinc-400" dateTime={event.eventDate}>
                     {Number.isNaN(date.getTime())
                         ? 'Date to be announced'
-                        : date.toLocaleDateString(undefined, {
+                        : date.toLocaleTimeString(undefined, {
                             year: 'numeric',
                             month: 'long',
                             day: 'numeric',
+                            timeZone: 'UTC',
                         })}
                     </time>
                 </div>
@@ -34,7 +35,7 @@ export function EventList() {
                     <p className="mt-3 text-sm text-zinc-600 dark:text-zinc-400">
                     {[event.locationDetails, event.address, event.room]
                         .filter(Boolean)
-                        .join(' · ') || 'At Memorial University'}
+                        .join(' · ') + ' At Memorial University'}
                     </p>
                 )}
                 {event.fee !== undefined && event.fee > 0 && (

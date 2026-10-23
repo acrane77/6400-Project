@@ -1,6 +1,7 @@
 import type { EventItem } from '@/features/events/data/models/event'
 import { NextResponse } from 'next/server';
 import { adminDb } from '@/lib/firebaseAdmin';
+import { clientAuth } from '@/lib/firebase';
 
 
 export class EventApiClient {
@@ -22,7 +23,15 @@ export class EventApiClient {
 
   async getEvents(): Promise<Response> {
     try {
-      const snapshot = await adminDb.collection('events').get();
+      // Event dates are stored as ISO strings; compare from the start of today
+      // so date-only events scheduled for today remain in the upcoming list.
+      const today = new Date()
+      today.setUTCHours(0, 0, 0, 0)
+      const snapshot = await adminDb
+        .collection('events')
+        .where('eventDate', '>=', today.toISOString())
+        .orderBy('eventDate', 'asc')
+        .get()
 
       const events = snapshot.docs.map(doc => ({
         id: doc.id,
@@ -35,6 +44,32 @@ export class EventApiClient {
       return NextResponse.json({error: (error as Error).message }, {status: 500});
     }
   }
+
+  async getMyEvents(): Promise<Response> {
+    try {
+      
+      // Event dates are stored as ISO strings; compare from the start of today
+      // so date-only events scheduled for today remain in the upcoming list.
+      const today = new Date()
+      today.setUTCHours(0, 0, 0, 0)
+      const snapshot = await adminDb
+        .collection('events')
+        .where('ownerId', '==', clientAuth.currentUser?.uid )
+        .orderBy('eventDate', 'asc')
+        .get()
+
+      const events = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+
+      return NextResponse.json({ success: true, body: events}, {status: 200})
+
+    } catch (error) {
+      return NextResponse.json({error: (error as Error).message }, {status: 500});
+    }
+  }
+
 
   async deleteEvent(id: string, ownerId: string): Promise<Response> {
     try {
