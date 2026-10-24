@@ -54,12 +54,12 @@ async function requestAccount(path: string, body: object): Promise<User> {
     id: account.id,
     username: account.username,
     email: account.email,
-    firstName: '',
-    lastName: '',
+    // firstName: '',
+    // lastName: '',
   }
 }
-
-export function AccountProvider({ children }: { children: ReactNode }) {
+ 
+export function AccountProvider({ children }: { children: ReactNode }){
   const [user, setUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [isAuthLoading, setIsAuthLoading] = useState(true)
@@ -109,8 +109,6 @@ export function AccountProvider({ children }: { children: ReactNode }) {
               id: result.user.uid,
               username: details.username,
               email: details.email,
-              firstName: '',
-              lastName: ''
           };
 
           setUser(account);
