@@ -46,3 +46,14 @@ export async function deleteEvent(id: string): Promise<{success: boolean}> {
     const response = await APIFetch("DELETE", `/api/events/${encodeURIComponent(id.trim())}`, {});
     return { success: response.ok };
 }
+
+
+export async function addUserToEvent(eventId: string) : Promise<{success: boolean}> {
+    const response = await APIFetch("POST", "/api/events/signup", { eventId });
+    if (!response.ok) {
+        console.error('User was not added to event');
+        return {success: false}
+    } else {
+        return {success: true}
+    }
+}
