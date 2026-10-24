@@ -2,11 +2,13 @@
 
 import { useState, type FormEvent } from 'react'
 import { createEvent } from '@/features/events/presentation/api/apiClient'
+import { useAccount } from '@/features/Account/presentation/contexts/AccountContext'
 
 export default function EventCreator() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
+  const { isAuthLoading, hasRole } = useAccount()
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -45,6 +47,11 @@ export default function EventCreator() {
     } finally {
       setIsSubmitting(false)
     }
+  }
+
+  if (isAuthLoading) return <p className="p-6" role="status">Loading...</p>
+  if(!hasRole(['DEVELOPER', 'ORGANIZER'])) {
+	  return <p className="p-6">Must be an organizer to create events.</p>
   }
 
   return (
