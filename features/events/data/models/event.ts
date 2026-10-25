@@ -15,4 +15,5 @@ export type EventItem = {
     address?: string;
     room?: string;
     locationDetails?: string;
+    organizerIds?: string[];
 };

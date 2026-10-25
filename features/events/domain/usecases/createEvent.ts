@@ -11,7 +11,7 @@ export class CreateEvent {
   /** Server-side entry point: validate handler input, then persist through the server repository. */
   async execute(request: Request)
   : Promise<Response> {
-	  const auth = await requireAuth(request, ['DEVELOPER', 'ORGANIZER'])
+	  const auth = await requireAuth(request)
 	  if (auth instanceof Response) return auth
 	  const ownerId = auth.uid
 
@@ -44,6 +44,7 @@ export class CreateEvent {
       people: Array.isArray(input.people) ? input.people as EventItem['people'] : [],
       volenteers: Array.isArray(input.volenteers) ? input.volenteers as EventItem['volenteers'] : [],
       ownerId,
+      organizerIds: [ownerId],
       atMun: input.atMun === true,
       ...(capacity !== undefined && { capacity }),
       ...(fee !== undefined && { fee }),

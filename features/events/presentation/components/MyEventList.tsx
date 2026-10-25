@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useMyEvents } from "../contexts/myEventsContext"
+import Link from 'next/link'
 import { UserListDialog } from "@/features/Account/presentation/components/UserListDialog";
 
 export function MyEventList() {
@@ -51,11 +52,19 @@ export function MyEventList() {
                         <p className="mt-2 text-sm">Fee: ${event.fee.toFixed(2)}</p>
                     )}
                 </div>
-                <div className="py-2">
+                <div className="flex gap-3 py-2">
+                    <Link
+                        href={`/account/events/${event.id}/manage`}
+                        className="rounded-lg border border-blue-600 px-3 py-1 hover:bg-blue-600 hover:text-white"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        Manage Event
+                    </Link>
+
                     <button
                         className="rounded-lg border border-red-800 px-3 py-1 transition-colors hover:bg-red-600 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600"
-                        onClick={(clickEvent) => {
-                            clickEvent.stopPropagation()
+                        onClick={(e) => {
+                            e.stopPropagation()
                             void deleteEvent(event.id)
                         }}
                     >
