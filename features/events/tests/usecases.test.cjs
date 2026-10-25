@@ -7,10 +7,14 @@ const { adminAuth } = require(path.join(projectRoot, 'tests/mocks/firebaseAdmin.
 const { adminDb } = require(path.join(projectRoot, 'tests/mocks/firebaseAdmin.cjs'))
 const { CreateEvent } = require(path.join(projectRoot, 'features/events/domain/usecases/createEvent.ts'))
 const { DeleteEvent } = require(path.join(projectRoot, 'features/events/domain/usecases/deleteEvent.ts'))
-const { EventSignUp } = require(path.join(projectRoot, 'features/events/domain/usecases/EventSignUp.ts'))
 const { GetEvents } = require(path.join(projectRoot, 'features/events/domain/usecases/getEvents.ts'))
 const { GetMyEvents } = require(path.join(projectRoot, 'features/events/domain/usecases/getMyEvents.ts'))
 const { EventApiClient } = require(path.join(projectRoot, 'features/events/domain/api/EventApi.ts'))
+
+const TOKENS = {
+  'valid-token': { uid: 'user-1', role: 'ORGANIZER' },
+  'participant-token': { uid: 'user-1' },
+}
 
 const jsonResponse = (status, body = {}) => new Response(JSON.stringify(body), {
   status,
@@ -21,8 +25,7 @@ const mockRepository = () => ({
   createEvent: async (event) => jsonResponse(201, { success: true, body: event }),
   getEvents: async () => jsonResponse(200, { success: true, body: [] }),
   getMyEvents: async (ownerId) => jsonResponse(200, { success: true, body: { ownerId } }),
-  deleteEvent: async (id, ownerId) => jsonResponse(200, { success: true, body: { id, ownerId } }),
-  eventSignUp: async (eventId, user) => jsonResponse(200, { success: true, body: { eventId, user } }),
+  deleteEvent: async (id, requester) => jsonResponse(200, { success: true, body: { id, requester } }),
 })
 
 const authorizedRequest = (body, token = 'valid-token') => new Request('http://localhost/api/events', {
@@ -36,8 +39,8 @@ const responseBody = (response) => response.json()
 describe('Events use cases', () => {
   beforeEach(() => {
     adminAuth.verifyIdToken = async (token) => {
-      if (token === 'invalid-token') throw new Error('Invalid token')
-      return { uid: 'user-1' }
+      if (!TOKENS[token]) throw new Error('Invalid token')
+      return TOKENS[token]
     }
   })
 
@@ -52,6 +55,13 @@ describe('Events use cases', () => {
       const response = await new CreateEvent(mockRepository()).execute(authorizedRequest({}, 'invalid-token'))
       assert.equal(response.status, 401)
       assert.match((await responseBody(response)).error, /Invalid token/)
+    })
+
+    it('rejects participants', async () => {
+      const response = await new CreateEvent(mockRepository()).execute(authorizedRequest({
+        eventDate: '2026-12-01', title: 'Demo', description: 'Description',
+      }, 'participant-token'))
+      assert.equal(response.status, 403)
     })
 
     it('rejects malformed JSON', async () => {
@@ -146,39 +156,15 @@ describe('Events use cases', () => {
       assert.equal(repositoryCalled, false)
     })
 
-    it('validates the event id and passes the authenticated owner to the repository', async () => {
+    it('validates the event id and passes the authenticated user to the repository', async () => {
       let deleted
       const repository = { ...mockRepository(), deleteEvent: async (...args) => { deleted = args; return jsonResponse(200) } }
       const response = await new DeleteEvent(repository).execute(authorizedRequest({ id: ' event-1 ' }))
       assert.equal(response.status, 200)
-      assert.deepEqual(deleted, ['event-1', 'user-1'])
+      assert.deepEqual(deleted, ['event-1', { uid: 'user-1', role: 'ORGANIZER' }])
 
       const invalid = await new DeleteEvent(repository).execute(authorizedRequest({ id: ' ' }))
       assert.equal(invalid.status, 400)
-    })
-  })
-
-  describe('EventSignUp', () => {
-    it('rejects a user id that does not match the authenticated account', async () => {
-      let repositoryCalled = false
-      const repository = { ...mockRepository(), eventSignUp: async () => { repositoryCalled = true; return jsonResponse(200) } }
-      const response = await new EventSignUp(repository).execute(authorizedRequest({ eventId: 'event-1', user: { id: 'other-user' } }))
-      assert.equal(response.status, 403)
-      assert.equal(repositoryCalled, false)
-    })
-
-    it('validates input and forwards an authenticated signup', async () => {
-      let signup
-      const repository = { ...mockRepository(), eventSignUp: async (...args) => { signup = args; return jsonResponse(200) } }
-      const missingId = await new EventSignUp(repository).execute(authorizedRequest({ eventId: ' ', user: { id: 'user-1' } }))
-      assert.equal(missingId.status, 400)
-
-      const response = await new EventSignUp(repository).execute(authorizedRequest({
-        eventId: ' event-1 ', user: { id: 'user-1', username: 'demo', email: 'demo@example.com' },
-      }))
-      assert.equal(response.status, 200)
-      assert.equal(signup[0], 'event-1')
-      assert.equal(signup[1].id, 'user-1')
     })
   })
 })
@@ -186,7 +172,7 @@ describe('Events use cases', () => {
 describe('EventApiClient Firestore behavior', () => {
   it('returns not found when deleting an event that does not exist', async () => {
     adminDb.collection = () => ({ doc: () => ({ get: async () => ({ exists: false }) }) })
-    const response = await new EventApiClient().deleteEvent('missing-event', 'user-1')
+    const response = await new EventApiClient().deleteEvent('missing-event', { uid: 'user-1', role: 'ORGANIZER' })
     assert.equal(response.status, 404)
   })
 
@@ -197,68 +183,24 @@ describe('EventApiClient Firestore behavior', () => {
       delete: async () => { deleted = true },
     }) })
 
-    const forbidden = await new EventApiClient().deleteEvent('event-1', 'other-user')
+    const forbidden = await new EventApiClient().deleteEvent('event-1', { uid: 'other-user', role: 'PARTICIPANT' })
     assert.equal(forbidden.status, 403)
     assert.equal(deleted, false)
 
-    const allowed = await new EventApiClient().deleteEvent('event-1', 'owner-1')
+    const allowed = await new EventApiClient().deleteEvent('event-1', { uid: 'owner-1', role: 'ORGANIZER' })
     assert.equal(allowed.status, 200)
     assert.equal(deleted, true)
   })
 
-  it('rejects a duplicate signup without updating the event', async () => {
-    let updated = false
-    const eventRef = { get: async () => ({
-      exists: true,
-      id: 'event-1',
-      data: () => ({ people: [{ id: 'user-1' }], capacity: 10 }),
-    }) }
-    adminDb.collection = () => ({ doc: () => eventRef })
-    adminDb.runTransaction = async (callback) => callback({
-      get: async () => eventRef.get(),
-      update: () => { updated = true },
-    })
+  it('lets a developer delete any event', async () => {
+    let deleted = false
+    adminDb.collection = () => ({ doc: () => ({
+      get: async () => ({ exists: true, get: () => 'owner-1' }),
+      delete: async () => { deleted = true },
+    }) })
 
-    const response = await new EventApiClient().eventSignUp('event-1', { id: 'user-1' })
-    assert.equal(response.status, 409)
-    assert.equal(updated, false)
-  })
-
-  it('rejects signup when capacity is full', async () => {
-    let updated = false
-    const eventRef = { get: async () => ({
-      exists: true,
-      id: 'event-1',
-      data: () => ({ people: [{ id: 'user-2' }], capacity: 1 }),
-    }) }
-    adminDb.collection = () => ({ doc: () => eventRef })
-    adminDb.runTransaction = async (callback) => callback({
-      get: async () => eventRef.get(),
-      update: () => { updated = true },
-    })
-
-    const response = await new EventApiClient().eventSignUp('event-1', { id: 'user-1' })
-    assert.equal(response.status, 409)
-    assert.equal(updated, false)
-  })
-
-  it('adds a signup transactionally when the event has space', async () => {
-    let savedPeople
-    const eventRef = { get: async () => ({
-      exists: true,
-      id: 'event-1',
-      data: () => ({ people: [], capacity: 2 }),
-    }) }
-    adminDb.collection = () => ({ doc: () => eventRef })
-    adminDb.runTransaction = async (callback) => callback({
-      get: async () => eventRef.get(),
-      update: (_ref, update) => { savedPeople = update.people },
-    })
-
-    const user = { id: 'user-1', username: 'demo', email: 'demo@example.com' }
-    const response = await new EventApiClient().eventSignUp('event-1', user)
+    const response = await new EventApiClient().deleteEvent('event-1', { uid: 'dev-1', role: 'DEVELOPER' })
     assert.equal(response.status, 200)
-    assert.deepEqual(savedPeople, [user])
-    assert.deepEqual((await responseBody(response)).body.people, [user])
+    assert.equal(deleted, true)
   })
 })
