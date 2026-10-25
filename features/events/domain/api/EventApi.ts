@@ -1,7 +1,7 @@
 import type { EventItem } from '@/features/events/data/models/event'
 import { NextResponse } from 'next/server';
 import { adminDb } from '@/lib/firebaseAdmin';
-import { User } from '@/features/Account/data/models/user';
+import type { User } from '@/features/Account/data/models/user';
 
 
 export class EventApiClient {

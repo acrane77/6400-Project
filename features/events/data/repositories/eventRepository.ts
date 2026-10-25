@@ -1,4 +1,4 @@
-import { User } from "@/features/Account/data/models/user";
+import type { User } from "@/features/Account/data/models/user";
 
 
 export interface EventRepository {

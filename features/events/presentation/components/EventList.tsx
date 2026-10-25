@@ -4,7 +4,7 @@ import { useEvents } from "../contexts/eventsContext"
 
 export function EventList() {
 
-    const {events, loading} = useEvents();
+    const {events, loading, eventSignUp} = useEvents();
 
     return <div>
         {loading && events.length == 0 && <p>... Loading Events</p>}
@@ -41,6 +41,10 @@ export function EventList() {
                 {event.fee !== undefined && event.fee > 0 && (
                     <p className="mt-2 text-sm">Fee: ${event.fee.toFixed(2)}</p>
                 )}
+                <div className="py-2">
+                    <button className="rounded-lg border border-green-800 px-3 py-1 transition-colors hover:scale-105 hover:bg-green-200/40 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-400" 
+                    onClick={() => eventSignUp(event.id)}> Sign-Up</button>
+                </div>
                 </li>
             )
             })}
