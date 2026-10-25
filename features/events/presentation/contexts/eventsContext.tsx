@@ -44,28 +44,45 @@ type EventProps = {
 
 export function EventsProvider({ children }: EventProps) {
   const { addEvent: addMyEvent } = useMyEvents()
-  const { user } = useAccount()
+  const { user, isAuthLoading } = useAccount()
+  const userId = user?.id
   const [events, setEvents] = useState<EventItem[]>([])
   const [hasMore, setHasMore] = useState(true)
   const [loading, setLoading] = useState(false);
 
-  const loadInitialEvents = useCallback(async () => {
-    setLoading(true)
-    const result = await getEventsAPI()
-    if (!result.success || !result.events) {
-      setLoading(false);
+  useEffect(() => {
+    let active = true
+  
+    setEvents([])
+  
+    if (isAuthLoading || !userId) {
+      setLoading(false)
       return
     }
-
-    setEvents(sortEventsByDate(result.events))
-    setHasMore(false)
-    setLoading(false);
-
-  }, []);
-
-  useEffect(() => {
-    if (events.length === 0) void loadInitialEvents()
-  }, [events.length, loadInitialEvents])
+  
+    async function loadEvents() {
+      setLoading(true)
+  
+      try {
+        const result = await getEventsAPI()
+  
+        if (!active) return
+  
+        if (result.success && result.events) {
+          setEvents(sortEventsByDate(result.events))
+          setHasMore(false)
+        }
+      } finally {
+        if (active) setLoading(false)
+      }
+    }
+  
+    void loadEvents()
+  
+    return () => {
+      active = false
+    }
+  }, [isAuthLoading, userId])
 
   const loadMoreEvents = useCallback(async () => {
     if (!hasMore) return;

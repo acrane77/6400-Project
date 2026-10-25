@@ -135,16 +135,14 @@ export default function InvitationPage() {
 
               <div className="flex gap-4">
                 <Link
-                  href="/account/login"
-                  target="_blank"
+                  href={`/account/login?next=${encodeURIComponent(`/events/invite/${token}`)}`}
                   className="rounded-lg bg-blue-600 px-6 py-2 text-white"
                 >
                   Log In
                 </Link>
 
                 <Link
-                  href="/account/signup"
-                  target="_blank"
+                  href={`/account/signup?next=${encodeURIComponent(`/events/invite/${token}`)}`}
                   className="rounded-lg border px-6 py-2"
                 >
                   Sign Up

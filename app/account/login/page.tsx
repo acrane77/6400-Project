@@ -23,6 +23,14 @@ export default function LoginPage() {
             })
 
             form.reset();
+
+            const next = new URLSearchParams(window.location.search).get('next')
+
+            if (next?.startsWith('/events/invite/')) {
+                window.location.assign(next)
+                return
+            }
+
             setMessage('Login successful.')
          } catch (submitError) {
             setError(

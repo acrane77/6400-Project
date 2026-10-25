@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation'
 import Link from 'next/link'
 import APIFetch from '@/core/APIFetch'
 import { useAccount } from '@/features/Account/presentation/contexts/AccountContext'
+import EventMembers from '@/features/events/presentation/components/EventMembers'
 
 type EventRole = 'ORGANIZER' | 'VOLUNTEER' | 'PARTICIPANT'
 
@@ -78,6 +79,7 @@ export default function ManageEventPage() {
       <h1 className="mb-8 text-3xl font-bold">
         Manage Event
       </h1>
+      <EventMembers eventId={id} />
 
       <section className="rounded-xl border border-zinc-700 p-6">
 
