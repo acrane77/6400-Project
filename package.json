@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test": "node --require ./tests/register-typescript.cjs --test features/events/__tests__/usecases.test.cjs"
   },
   "dependencies": {
     "firebase": "^13.1.0",

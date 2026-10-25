@@ -1,5 +1,6 @@
 import APIFetch from "@/core/APIFetch";
 import { User } from "@/features/Account/data/models/user";
+import { useAccount } from "@/features/Account/presentation/contexts/AccountContext";
 import { EventItem } from "../../data/models/event";
 import { CreateEventRequest } from "../../data/models/createEventRequest";
 
@@ -43,4 +44,15 @@ export async function deleteEventAPI(id: string): Promise<{success: boolean}> {
     if (!id.trim()) return { success: false };
     const response = await APIFetch("DELETE", `/api/events/${encodeURIComponent(id.trim())}`, {});
     return { success: response.ok };
+}
+
+
+export async function addUserToEvent(eventId: string, user: User) : Promise<{success: boolean}> {
+    const response = await APIFetch("POST", "/api/events/signup", { eventId, user });
+    if (!response.ok) {
+        console.error('User was not added to event');
+        return {success: false}
+    } else {
+        return {success: true}
+    }
 }
