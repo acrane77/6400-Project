@@ -2,11 +2,13 @@
 
 import { useEvents } from '@/features/events/presentation/contexts/eventsContext'
 import { useState, type FormEvent } from 'react'
+import { useAccount } from '@/features/Account/presentation/contexts/AccountContext'
 
 export default function EventCreator() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
+  const { isAuthLoading, hasRole } = useAccount()
   const [atMun, setAtMun] = useState(true);
 
   const {addEvent} = useEvents();
@@ -44,6 +46,11 @@ export default function EventCreator() {
     } finally {
       setIsSubmitting(false)
     }
+  }
+
+  if (isAuthLoading) return <p className="p-6" role="status">Loading...</p>
+  if(!hasRole(['DEVELOPER', 'ORGANIZER'])) {
+	  return <p className="p-6">Must be an organizer to create events.</p>
   }
 
   return (
