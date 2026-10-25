@@ -3,6 +3,14 @@ const adminAuth = {
     if (token === 'invalid-token') throw new Error('Invalid token')
     return { uid: 'user-1' }
   },
+
+  async getUser(uid) {
+    return { uid, email: 'demo@example.com', displayName: 'demo', customClaims: {} }
+  },
+  async getUserByEmail() {
+    throw new Error('User not found')
+  },
+  async setCustomUserClaims() {},
 }
 
 const adminDb = {}
