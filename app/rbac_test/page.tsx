@@ -13,7 +13,7 @@ export default function RbacPage() {
 	const [error, setError] = useState('')
 
 	if (isAuthLoading) return <p className="p-6" role="status">Loading...</p>
-	if (!hasRole(['DEVELOPER'])) return <p className="p-6">Only Admins can changes roles.</p>
+	if (!hasRole(['DEVELOPER'])) return <p className="p-6">Only Admins can change roles.</p>
 	
 	async function submit(event: FormEvent<HTMLFormElement>) {
 		event.preventDefault()
