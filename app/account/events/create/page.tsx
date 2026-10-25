@@ -100,7 +100,6 @@ export default function EventCreator() {
               id="atMun"
               name="atMun"
               type="checkbox"
-              required
               checked={atMun}
               onClick={() => setAtMun((prev) => {return !prev})}
             />
