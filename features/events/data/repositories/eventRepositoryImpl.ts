@@ -13,7 +13,11 @@ export class EventRepositoryImpl implements EventRepository {
     return this.apiClient.getEvents();
   }
 
+  getMyEvents(ownerId: string): Promise<Response> {
+	  return this.apiClient.getMyEvents(ownerId);
+  }
+
   deleteEvent(id: string, requester: AuthUser): Promise<Response> {
-    return this.apiClient.deleteEvent(id, requester);
+	  return this.apiClient.deleteEvent(id, requester);
   }
 }
