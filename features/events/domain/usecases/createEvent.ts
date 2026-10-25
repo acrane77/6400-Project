@@ -13,7 +13,7 @@ export class CreateEvent {
   : Promise<Response> {
     const authHeader = request.headers.get('Authorization')
       if (!authHeader?.startsWith('Bearer ')) {
-        return  Response.json({ success: false, error: 'Unauthorized: Missing token.'}, { status: 400 })
+        return  Response.json({ success: false, error: 'Unauthorized: Missing token.'}, { status: 401 })
       }
       let ownerId: string;
 
@@ -44,7 +44,7 @@ export class CreateEvent {
       capacity = this.optionalNumber(input.capacity, 'Capacity')
       fee = this.optionalNumber(input.fee, 'Fee')
     } catch (error) {
-       Response.json({ success: false, error: (error as Error).message }, { status: 500 })
+       return Response.json({ success: false, error: (error as Error).message }, { status: 400 })
     }
     if (!ownerId) {
       return  Response.json({ success: false, error: 'User is not Logged in.' }, { status: 401 })
