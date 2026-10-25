@@ -2,7 +2,7 @@
 import { type FormEvent, useState } from "react"
 import { useAccount } from "@/features/Account/presentation/contexts/AccountContext"
 
-export default function loginPage() {
+export default function LoginPage() {
 
     const { signup, isLoading } = useAccount();
     const [message, setMessage] = useState('');
