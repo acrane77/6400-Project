@@ -44,6 +44,7 @@ export class CreateEvent {
       people: Array.isArray(input.people) ? input.people as EventItem['people'] : [],
       volenteers: Array.isArray(input.volenteers) ? input.volenteers as EventItem['volenteers'] : [],
       ownerId,
+      organizerIds: [ownerId],
       atMun: input.atMun === true,
       ...(capacity !== undefined && { capacity }),
       ...(fee !== undefined && { fee }),
