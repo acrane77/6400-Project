@@ -2,7 +2,7 @@ import type { EventItem } from '@/features/events/data/models/event'
 import { NextResponse } from 'next/server';
 import { adminDb } from '@/lib/firebaseAdmin';
 import type { User } from '@/features/Account/data/models/user';
-
+import { AuthUser } from '@/core/auth'
 
 export class EventApiClient {
   async createEvent(body: any): Promise<Response> {
@@ -65,16 +65,14 @@ export class EventApiClient {
     }
   }
 
-
-
-  async deleteEvent(id: string, ownerId: string): Promise<Response> {
+  async deleteEvent(id: string, requester: AuthUser): Promise<Response> {
     try {
        const eventRef = adminDb.collection('events').doc(id);
        const event = await eventRef.get();
        if (!event.exists) {
          return NextResponse.json({ success: false, error: 'Event not found.' }, { status: 404 });
        }
-       if (event.get('ownerId') !== ownerId) {
+       if (event.get('ownerId') !== requester.uid && requester.role !== 'DEVELOPER') {
          return NextResponse.json({ success: false, error: 'You are not allowed to delete this event.' }, { status: 403 });
        }
        await eventRef.delete();
