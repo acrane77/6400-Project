@@ -9,10 +9,12 @@ import {
   useEffect,
   type ReactNode,
 } from 'react'
-import { getEventsAPI } from '../api/apiClient'
+import { getEventsAPI, addUserToEvent } from '../api/apiClient'
 import type { EventItem } from '@/features/events/data/models/event'
 import { CreateEventRequest } from "../../data/models/createEventRequest";
 import { useMyEvents } from './myEventsContext'
+import { useAccount } from '@/features/Account/presentation/contexts/AccountContext';
+import { toast } from '@/core/Components/toast';
 
 
 type EventsContextValue = {
@@ -21,6 +23,7 @@ type EventsContextValue = {
   loading: boolean
   addEvent: (event: CreateEventRequest) => Promise<void>;
   loadMoreEvents: () => Promise<void>
+  eventSignUp: (eventId :string) => Promise<void>;
 }
 
 const EventsContext = createContext<EventsContextValue | undefined>(undefined)
@@ -41,6 +44,7 @@ type EventProps = {
 
 export function EventsProvider({ children }: EventProps) {
   const { addEvent: addMyEvent } = useMyEvents()
+  const { user } = useAccount()
   const [events, setEvents] = useState<EventItem[]>([])
   const [hasMore, setHasMore] = useState(true)
   const [loading, setLoading] = useState(false);
@@ -95,9 +99,22 @@ export function EventsProvider({ children }: EventProps) {
     )
   }, [addMyEvent])
 
+  const eventSignUp = useCallback(async function name(eventId: string) {
+    if (!user) {
+      toast('Please sign in to join this event.', 'error')
+      return
+    }
+    const response = await addUserToEvent(eventId, user)
+    if (!response.success) {
+      toast('Could not sign up for this event.', 'error')
+      return
+    }
+    toast("you have signed up for this event.", "success")
+  }, [user])
+
   const value = useMemo(
-    () => ({ events, hasMore, loading, addEvent, loadMoreEvents }),
-    [events, hasMore, loading, addEvent,  loadMoreEvents],
+    () => ({ events, hasMore, loading, addEvent, loadMoreEvents, eventSignUp }),
+    [events, hasMore, loading, addEvent,  loadMoreEvents, eventSignUp],
   )
 
   return <EventsContext.Provider value={value}>{children}</EventsContext.Provider>

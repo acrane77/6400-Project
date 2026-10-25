@@ -1,3 +1,4 @@
+import { User } from '@/features/Account/data/models/user';
 import type { EventRepository } from '@/features/events/data/repositories/eventRepository'
 import { EventApiClient } from '@/features/events/domain/api/EventApi'
 import { AuthUser } from '@/core/auth'
@@ -19,5 +20,9 @@ export class EventRepositoryImpl implements EventRepository {
 
   deleteEvent(id: string, requester: AuthUser): Promise<Response> {
 	  return this.apiClient.deleteEvent(id, requester);
+  }
+
+  eventSignUp(eventId: string, user: User): Promise<Response>{
+    return this.apiClient.eventSignUp(eventId, user);
   }
 }
