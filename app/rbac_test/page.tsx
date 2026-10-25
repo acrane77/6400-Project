@@ -1,3 +1,5 @@
+"use client"
+
 import { useState, type FormEvent } from 'react'
 import APIFetch from '@/core/APIFetch'
 import RoleSelector from '@/features/Account/presentation/components/RoleSelector'

@@ -5,7 +5,7 @@ import { useAccount } from "@/features/Account/presentation/contexts/AccountCont
 
 export default function loginPage() {
 
-    const { login, isLoading } = useAccount();
+    const { login, logout, user, isLoading } = useAccount();
     const [message, setMessage] = useState('');
     const [error, setError] = useState('');
 
@@ -32,6 +32,14 @@ export default function loginPage() {
             )
          }
     } 
+	if (user) {
+		return (
+			<div className="flex flex-col items-center gap-4 p-6">
+				<p className="text-lg">Logged in as {user.username}</p>
+				<button type="button" onClick={() => void logout()} className="h-8 w-28 rounded-xl border-2 border-white bg-white font-bold text-black">Logout</button>
+			</div>
+		)
+	}
 
     return (
         <div>
