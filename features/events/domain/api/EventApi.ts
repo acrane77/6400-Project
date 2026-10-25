@@ -71,7 +71,7 @@ export class EventApiClient {
        if (!event.exists) {
          return NextResponse.json({ success: false, error: 'Event not found.' }, { status: 404 });
        }
-       if (event.get('ownerId') !== requester.uid && requester.role !== 'DEVELOPER') {
+       if (event.get('ownerId') !== requester.uid) {
          return NextResponse.json({ success: false, error: 'You are not allowed to delete this event.' }, { status: 403 });
        }
        await eventRef.delete();

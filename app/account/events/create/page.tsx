@@ -8,7 +8,7 @@ export default function EventCreator() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
-  const { isAuthLoading, hasRole } = useAccount()
+  const { isAuthLoading, isAuthenticated } = useAccount()
   const [atMun, setAtMun] = useState(true);
 
   const {addEvent} = useEvents();
@@ -49,8 +49,8 @@ export default function EventCreator() {
   }
 
   if (isAuthLoading) return <p className="p-6" role="status">Loading...</p>
-  if(!hasRole(['DEVELOPER', 'ORGANIZER'])) {
-	  return <p className="p-6">Must be an organizer to create events.</p>
+  if(!isAuthenticated) {
+	  return <p className="p-6">You must log in to create events.</p>
   }
 
   return (
