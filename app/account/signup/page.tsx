@@ -2,7 +2,7 @@
 import { type FormEvent, useState } from "react"
 import { useAccount } from "@/features/Account/presentation/contexts/AccountContext"
 
-export default function loginPage() {
+export default function LoginPage() {
 
     const { signup, isLoading } = useAccount();
     const [message, setMessage] = useState('');
@@ -28,6 +28,14 @@ export default function loginPage() {
             })
 
             form.reset();
+
+            const next = new URLSearchParams(window.location.search).get('next')
+
+            if (next?.startsWith('/events/invite/')) {
+                window.location.assign(next)
+                return
+            }
+
             setMessage('Account created successfully.')
          } catch (submitError) {
             setError(

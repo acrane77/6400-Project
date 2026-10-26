@@ -1,12 +1,17 @@
 'use client'
 
+import { useEvents } from '@/features/events/presentation/contexts/eventsContext'
 import { useState, type FormEvent } from 'react'
-import { createEvent } from '@/features/events/presentation/api/apiClient'
+import { useAccount } from '@/features/Account/presentation/contexts/AccountContext'
 
 export default function EventCreator() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
+  const { isAuthLoading, isAuthenticated } = useAccount()
+  const [atMun, setAtMun] = useState(true);
+
+  const {addEvent} = useEvents();
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -15,24 +20,20 @@ export default function EventCreator() {
     setMessage('')
     setError('')
 
-    const formData = new FormData(form)
-    const eventDate = formData.get('eventDate')?.toString()
-
+    const formData = new FormData(form);
+    const eventDate = formData.get('eventDate')?.toString();
+    const eventTime = formData.get('eventTime')?.toString();
+    console.log(eventDate, eventTime)
     try {
-      const result = await createEvent({
+      await addEvent({
         dateCreated: new Date().toISOString(),
         title: formData.get('title')?.toString().trim() ?? '',
         description: formData.get('description')?.toString().trim() ?? '',
-        // Keep date-only form values at UTC midnight to avoid timezone shifts.
-        eventDate: eventDate ? `${eventDate}T00:00:00Z` : '',
-        people: [],
-        volenteers: [],
-        atMun: false,
+        eventDate: eventDate ? `${eventDate}T${eventTime}:00Z` : '',
+        atMun: atMun,
+        room: formData.get('roomCode')?.toString().trim() ?? '',
+        address: formData.get('address')?.toString().trim() ?? '',
       })
-
-      if (!result.success) {
-        throw new Error('The server rejected the event.')
-      }
 
       form.reset()
       setMessage('Event created successfully.')
@@ -45,6 +46,11 @@ export default function EventCreator() {
     } finally {
       setIsSubmitting(false)
     }
+  }
+
+  if (isAuthLoading) return <p className="p-6" role="status">Loading...</p>
+  if(!isAuthenticated) {
+	  return <p className="p-6">You must log in to create events.</p>
   }
 
   return (
@@ -84,6 +90,51 @@ export default function EventCreator() {
               required
             />
           </div>
+          <div className="flex flex-col gap-2">
+            <label className="text-xl" htmlFor="eventTime">Event Time</label>
+            <input
+              className="rounded-lg border-2 border-white px-2 py-1"
+              id="eventTime"
+              name="eventTime"
+              type="time"
+              required
+            />
+          </div>
+          <div className="flex flex-col gap-2">
+            <label className="text-xl" htmlFor="atMun">At Mun</label>
+            <input
+              className="rounded-lg border-2 border-white px-2 py-1"
+              id="atMun"
+              name="atMun"
+              type="checkbox"
+              checked={atMun}
+              onClick={() => setAtMun((prev) => {return !prev})}
+            />
+          </div>
+          {atMun && (
+            <div className="flex flex-col gap-2">
+            <label className="text-xl" htmlFor="roomCode">Room Code</label>
+            <input
+              className="rounded-lg border-2 border-white px-2 py-1"
+              id="roomCode"
+              name="roomCode"
+              type="text"
+              required
+            />
+            </div>
+          )}
+          {!atMun && (
+            <div className="flex flex-col gap-2">
+            <label className="text-xl" htmlFor="address">Address</label>
+            <input
+              className="rounded-lg border-2 border-white px-2 py-1"
+              id="address"
+              name="address"
+              type="text"
+              required
+            />
+            </div>
+          )}
           {message && <p role="status">{message}</p>}
           {error && <p className="text-red-600" role="alert">{error}</p>}
           <button

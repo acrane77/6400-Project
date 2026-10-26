@@ -1,6 +1,6 @@
 import type { EventItem } from '@/features/events/data/models/event'
 import type { EventRepository } from '@/features/events/data/repositories/eventRepository'
-import {adminAuth} from '@/lib/firebaseAdmin'
+import { requireAuth } from '@/core/auth'
 
 export class CreateEvent {
 
@@ -11,19 +11,9 @@ export class CreateEvent {
   /** Server-side entry point: validate handler input, then persist through the server repository. */
   async execute(request: Request)
   : Promise<Response> {
-    const authHeader = request.headers.get('Authorization')
-      if (!authHeader?.startsWith('Bearer ')) {
-        return  Response.json({ success: false, error: 'Unauthorized: Missing token.'}, { status: 400 })
-      }
-      let ownerId: string;
-
-      try {
-        const decodedToken = await adminAuth.verifyIdToken(authHeader.slice('Bearer '.length))
-        ownerId = decodedToken.uid
-      } catch {
-        return Response.json({ success: false, error: 'Unauthorized: Invalid token.' }, { status: 401 })
-      }
-      
+	  const auth = await requireAuth(request)
+	  if (auth instanceof Response) return auth
+	  const ownerId = auth.uid
 
       let input: any;
       try {
@@ -44,11 +34,8 @@ export class CreateEvent {
       capacity = this.optionalNumber(input.capacity, 'Capacity')
       fee = this.optionalNumber(input.fee, 'Fee')
     } catch (error) {
-       Response.json({ success: false, error: (error as Error).message }, { status: 500 })
-    }
-    if (!ownerId) {
-      return  Response.json({ success: false, error: 'User is not Logged in.' }, { status: 401 })
-    }
+       return Response.json({ success: false, error: (error as Error).message }, { status: 400 })
+    } 
 
     const body = {
       eventDate: new Date(input.eventDate).toISOString(),
@@ -57,6 +44,7 @@ export class CreateEvent {
       people: Array.isArray(input.people) ? input.people as EventItem['people'] : [],
       volenteers: Array.isArray(input.volenteers) ? input.volenteers as EventItem['volenteers'] : [],
       ownerId,
+      organizerIds: [ownerId],
       atMun: input.atMun === true,
       ...(capacity !== undefined && { capacity }),
       ...(fee !== undefined && { fee }),
