@@ -57,11 +57,28 @@ describe('Events use cases', () => {
       assert.match((await responseBody(response)).error, /Invalid token/)
     })
 
-    it('rejects participants', async () => {
-      const response = await new CreateEvent(mockRepository()).execute(authorizedRequest({
-        eventDate: '2026-12-01', title: 'Demo', description: 'Description',
-      }, 'participant-token'))
-      assert.equal(response.status, 403)
+    it('allows authenticated participants to create events', async () => {
+      let created
+
+      const repository = {
+        ...mockRepository(),
+        createEvent: async (event) => {
+          created = event
+          return jsonResponse(201, { success: true, body: event })
+        }
+      }
+
+      const response = await new CreateEvent(repository).execute(
+        authorizedRequest({
+          eventDate: '2026-12-01',
+          title: 'Demo',
+          description: 'Description',
+        }, 'participant-token')
+      )
+
+      assert.equal(response.status, 201)
+      assert.equal(created.ownerId, 'user-1')
+      assert.deepEqual(created.organizerIds, ['user-1'])
     })
 
     it('rejects malformed JSON', async () => {
@@ -192,15 +209,25 @@ describe('EventApiClient Firestore behavior', () => {
     assert.equal(deleted, true)
   })
 
-  it('lets a developer delete any event', async () => {
+  it('prevents developers from deleting events they do not own', async () => {
     let deleted = false
-    adminDb.collection = () => ({ doc: () => ({
-      get: async () => ({ exists: true, get: () => 'owner-1' }),
-      delete: async () => { deleted = true },
-    }) })
-
-    const response = await new EventApiClient().deleteEvent('event-1', { uid: 'dev-1', role: 'DEVELOPER' })
-    assert.equal(response.status, 200)
-    assert.equal(deleted, true)
+  
+    adminDb.collection = () => ({
+      doc: () => ({
+        get: async () => ({
+          exists: true,
+          get: () => 'owner-1'
+        }),
+        delete: async () => { deleted = true }
+      })
+    })
+  
+    const response = await new EventApiClient().deleteEvent(
+      'event-1',
+      { uid: 'dev-1', role: 'DEVELOPER' }
+    )
+  
+    assert.equal(response.status, 403)
+    assert.equal(deleted, false)
   })
 })
