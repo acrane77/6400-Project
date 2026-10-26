@@ -232,14 +232,12 @@ class QRCode { // cd desktop/random/qrcode
     const bits = this.#formatBits(maskIndex);
     const bit = (i) => (bits >>> i) & 1; // bit 0 = least significant
  
-    // first copy, around the top-left finder pattern
     for (let i = 0; i <= 5; i++) matrix[i][8] = bit(i);
     matrix[7][8] = bit(6);
     matrix[8][8] = bit(7);
     matrix[8][7] = bit(8);
     for (let i = 9; i < 15; i++) matrix[8][14 - i] = bit(i);
  
-    // second copy, split between the top-right and bottom-left finder patterns
     for (let i = 0; i < 8; i++) matrix[8][size - 1 - i] = bit(i);
     for (let i = 8; i < 15; i++) matrix[size - 15 + i][8] = bit(i);
   }
@@ -265,7 +263,7 @@ class QRCode { // cd desktop/random/qrcode
     let found = 0;
     const pattern = QRCode.#RULE_3;
     const reversed = QRCode.#RULE_3_REVERSED;
-    for (let i = 0; i <= line.length - pattern.length; i++) { // <= so the last window is checked
+    for (let i = 0; i <= line.length - pattern.length; i++) {
       if (pattern.every((v, k) => line[i + k] === v)) found++;
       if (reversed.every((v, k) => line[i + k] === v)) found++;
     }
@@ -279,10 +277,10 @@ class QRCode { // cd desktop/random/qrcode
  
     let total = 0;
  
-    // Rules 1 & 3 work on single lines
+    // Rules 1 & 3
     for (const line of lines) total += this.#rule1(line) + this.#rule3(line);
  
-    // Rule 2: 3 points for every 2x2 block of one color (overlaps count)
+    // Rule 2: 3 points for every 2x2 block of one color
     for (let r = 0; r < size - 1; r++) {
       for (let c = 0; c < size - 1; c++) {
         const m = matrix[r][c];
@@ -302,7 +300,7 @@ class QRCode { // cd desktop/random/qrcode
     let best = { matrix: null, mask: -1, score: Infinity };
     for (let mask = 0; mask < 8; mask++) {
       const candidate = this.#applyMask(base, mask);
-      this.#placeFormat(candidate, mask); // format info is part of the final symbol, so score it too
+      this.#placeFormat(candidate, mask); // format info is scored
       const score = this.#penalty(candidate);
       if (score < best.score) best = { matrix: candidate, mask, score };
     }
@@ -331,18 +329,17 @@ class QRCode { // cd desktop/random/qrcode
     process.stdout.write("\x1b[0m"); // reset colors
   }
  
-  // Builds the finished symbol without printing it: { matrix, mask, score }
-  generate(str) {
-    const base = this.#basicImage(this.#reedSolomon(this.#encoder(str))); // unmasked, no format info
-    const result = this.#bestMask(base);
+  // Builds the finished symbol without printing it
+  #generate(str) {;
+    const result = this.#bestMask(this.#basicImage(this.#reedSolomon(this.#encoder(str))));
     this.#matrix = result.matrix;
     return result;
   }
  
   async generator(str) {
-    const { matrix, mask, score } = this.generate(str);
+    const { matrix, mask, score } = this.#generate(str);
     await this.#print(matrix);
   }
 }
  
-new QRCode().generator("google.com");
+new QRCode().generator("youtube.com/watch?v=dQw4w9WgXcQ");
