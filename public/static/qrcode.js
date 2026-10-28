@@ -38,7 +38,7 @@ class QRCode { // cd desktop/random/qrcode
     let alternate = true; // Padding 11101100 and 00010001 alternating
     const padding1 = [1, 1, 1, 0, 1, 1, 0, 0];
     const padding2 = [0, 0, 0, 1, 0, 0, 0, 1];
-    while (bitstream.length < 272) { // Error correction level L size 272
+    while (bitstream.length < 864) { // Version 5 Error correction level L size 864
       if (alternate) bitstream.push(...padding1);
       else bitstream.push(...padding2);
       alternate = !alternate;
@@ -98,33 +98,49 @@ class QRCode { // cd desktop/random/qrcode
     return c;
   }
 
-  #reedSolomon(bitstream) { // 10 codewords fixed: g(x) = x¹⁰ + 216x⁹ + 194x⁸ + 159x⁷ + 111x⁶ + 199x⁵ + 94x⁴ + 95x³ + 113x² + 157x + 193
+  #reedSolomon(bitstream) { // 26 codewords fixed: g(26) polynomial
     const codewords = this.#toBytes(bitstream);
     const correction = structuredClone(codewords);
     const padding = [0, 0, 0, 0, 0, 0, 0, 0];
-    const gValues = [
-      [1, 1, 0, 1, 1, 0, 0, 0], // 216
-      [1, 1, 0, 0, 0, 0, 1, 0], // 194
-      [1, 0, 0, 1, 1, 1, 1, 1], // 159
-      [0, 1, 1, 0, 1, 1, 1, 1], // 111
-      [1, 1, 0, 0, 0, 1, 1, 1], // 199
-      [0, 1, 0, 1, 1, 1, 1, 0], // 94
-      [0, 1, 0, 1, 1, 1, 1, 1], // 95
-      [0, 1, 1, 1, 0, 0, 0, 1], // 113
-      [1, 0, 0, 1, 1, 1, 0, 1], // 157
-      [1, 1, 0, 0, 0, 0, 0, 1], // 193
-    ];
+  const gValues = [
+    [1, 1, 1, 1, 0, 1, 1, 0], // 246
+    [0, 0, 1, 1, 0, 0, 1, 1], // 51
+    [1, 0, 1, 1, 0, 1, 1, 1], // 183
+    [0, 0, 0, 0, 0, 1, 0, 0], // 4
+    [1, 0, 0, 0, 1, 0, 0, 0], // 136
+    [0, 1, 1, 0, 0, 0, 1, 0], // 98
+    [1, 1, 0, 0, 0, 1, 1, 1], // 199
+    [1, 0, 0, 1, 1, 0, 0, 0], // 152
+    [0, 1, 0, 0, 1, 1, 0, 1], // 77
+    [0, 0, 1, 1, 1, 0, 0, 0], // 56
+    [1, 1, 0, 0, 1, 1, 1, 0], // 206
+    [0, 0, 0, 1, 1, 0, 0, 0], // 24
+    [1, 0, 0, 1, 0, 0, 0, 1], // 145
+    [0, 0, 1, 0, 1, 0, 0, 0], // 40
+    [1, 1, 0, 1, 0, 0, 0, 1], // 209
+    [0, 1, 1, 1, 0, 1, 0, 1], // 117
+    [1, 1, 1, 0, 1, 0, 0, 1], // 233
+    [0, 0, 1, 0, 1, 0, 1, 0], // 42
+    [1, 0, 0, 0, 0, 1, 1, 1], // 135
+    [0, 1, 0, 0, 0, 1, 0, 0], // 68
+    [0, 1, 0, 0, 0, 1, 1, 0], // 70
+    [1, 0, 0, 1, 0, 0, 0, 0], // 144
+    [1, 0, 0, 1, 0, 0, 1, 0], // 146
+    [0, 1, 0, 0, 1, 1, 0, 1], // 77
+    [0, 0, 1, 0, 1, 0, 1, 1], // 43
+    [0, 1, 0, 1, 1, 1, 1, 0], // 94
+  ];
 
-    for (let i = 0; i < 10; i++) correction.push(padding);
+    for (let i = 0; i < 26; i++) correction.push(padding);
 
-    for (let i = 0; i < 34; i++) { // ignores leading coefficients after using for factor
+    for (let i = 0; i < 108; i++) { // ignores leading coefficients after using for factor
       const factor = correction[i];
-      for (let j = 1; j < 11; j++) {
+      for (let j = 1; j < 27; j++) {
         correction[i + j] = this.#GFXOR(correction[i + j], this.#GFMULT(factor, gValues[j - 1]));
       }
     }
 
-    for (let i = 0; i < 10; i++) codewords.push(correction[34 + i]);
+    for (let i = 0; i < 26; i++) codewords.push(correction[108 + i]);
     return this.#toBits(codewords);
   }
 
@@ -156,49 +172,49 @@ class QRCode { // cd desktop/random/qrcode
   }
 
   #basicImage(bitstream) {
-    this.#reserved = Array.from({ length: 25 }, () => Array(25).fill(false));;
-    this.#matrix = Array.from({ length: 25 }, () => Array(25).fill(0));
+    this.#reserved = Array.from({ length: 37 }, () => Array(37).fill(false));;
+    this.#matrix = Array.from({ length: 37 }, () => Array(37).fill(0));
 
     // fixed paterns
     this.#fixedPatternLargeSquare(0, 0);
-    this.#fixedPatternLargeSquare(0, 18);
-    this.#fixedPatternLargeSquare(18, 0);
-    this.#fixedPatternSmallSquare(16, 16);
+    this.#fixedPatternLargeSquare(0, 30);
+    this.#fixedPatternLargeSquare(30, 0);
+    this.#fixedPatternSmallSquare(28, 28);
 
     // patern seperators
     for (let i = 0; i < 8; i++) {
       this.#setFunction(7, i, 0);
       this.#setFunction(i, 7, 0);
-      this.#setFunction(7, 24 - i, 0);
-      this.#setFunction(i, 17, 0);
-      this.#setFunction(17, i, 0);
-      this.#setFunction(24 - i, 7, 0);
+      this.#setFunction(7, 36 - i, 0);
+      this.#setFunction(i, 29, 0);
+      this.#setFunction(29, i, 0);
+      this.#setFunction(36 - i, 7, 0);
     }
 
     // timing patterns
-    for (let i = 8; i < 17; i++) {
+    for (let i = 8; i < 29; i++) {
       this.#setFunction(6, i, i % 2 === 0 ? 1 : 0);
       this.#setFunction(i, 6, i % 2 === 0 ? 1 : 0);
     }
 
     // reserved information pattern + reserved dark module
-    for (let i = 0; i < 25; i++) {
-      if (i < 9 || i > 16) {
+    for (let i = 0; i < 37; i++) {
+      if (i < 9 || i > 28) {
         this.#reserved[8][i] = true;
         this.#reserved[i][8] = true;
       }
     }
 
     // dark module set 
-    this.#matrix[17][8] = 1; // 17, 8
+    this.#matrix[29][8] = 1; // 17, 8
 
     // place data bits
     let bitIndex = 0;
     let upward = true;
-    for (let col = 24; col > 0; col -= 2) {
+    for (let col = 36; col > 0; col -= 2) {
       if (col === 6) col--; // skip the vertical timing column
-      for (let k = 0; k < 25; k++) {
-        const row = upward ? 24 - k : k;
+      for (let k = 0; k < 37; k++) {
+        const row = upward ? 36 - k : k;
         for (let c = 0; c < 2; c++) {
           const x = col - c; // right module first, then left
           if (this.#reserved[row][x]) continue;
@@ -232,14 +248,12 @@ class QRCode { // cd desktop/random/qrcode
     const bits = this.#formatBits(maskIndex);
     const bit = (i) => (bits >>> i) & 1; // bit 0 = least significant
  
-    // first copy, around the top-left finder pattern
     for (let i = 0; i <= 5; i++) matrix[i][8] = bit(i);
     matrix[7][8] = bit(6);
     matrix[8][8] = bit(7);
     matrix[8][7] = bit(8);
     for (let i = 9; i < 15; i++) matrix[8][14 - i] = bit(i);
  
-    // second copy, split between the top-right and bottom-left finder patterns
     for (let i = 0; i < 8; i++) matrix[8][size - 1 - i] = bit(i);
     for (let i = 8; i < 15; i++) matrix[size - 15 + i][8] = bit(i);
   }
@@ -265,7 +279,7 @@ class QRCode { // cd desktop/random/qrcode
     let found = 0;
     const pattern = QRCode.#RULE_3;
     const reversed = QRCode.#RULE_3_REVERSED;
-    for (let i = 0; i <= line.length - pattern.length; i++) { // <= so the last window is checked
+    for (let i = 0; i <= line.length - pattern.length; i++) {
       if (pattern.every((v, k) => line[i + k] === v)) found++;
       if (reversed.every((v, k) => line[i + k] === v)) found++;
     }
@@ -279,10 +293,10 @@ class QRCode { // cd desktop/random/qrcode
  
     let total = 0;
  
-    // Rules 1 & 3 work on single lines
+    // Rules 1 & 3
     for (const line of lines) total += this.#rule1(line) + this.#rule3(line);
  
-    // Rule 2: 3 points for every 2x2 block of one color (overlaps count)
+    // Rule 2: 3 points for every 2x2 block of one color
     for (let r = 0; r < size - 1; r++) {
       for (let c = 0; c < size - 1; c++) {
         const m = matrix[r][c];
@@ -302,7 +316,7 @@ class QRCode { // cd desktop/random/qrcode
     let best = { matrix: null, mask: -1, score: Infinity };
     for (let mask = 0; mask < 8; mask++) {
       const candidate = this.#applyMask(base, mask);
-      this.#placeFormat(candidate, mask); // format info is part of the final symbol, so score it too
+      this.#placeFormat(candidate, mask); // format info is scored
       const score = this.#penalty(candidate);
       if (score < best.score) best = { matrix: candidate, mask, score };
     }
@@ -331,18 +345,17 @@ class QRCode { // cd desktop/random/qrcode
     process.stdout.write("\x1b[0m"); // reset colors
   }
  
-  // Builds the finished symbol without printing it: { matrix, mask, score }
-  generate(str) {
-    const base = this.#basicImage(this.#reedSolomon(this.#encoder(str))); // unmasked, no format info
-    const result = this.#bestMask(base);
+  // Builds the finished symbol without printing it
+  #generate(str) {;
+    const result = this.#bestMask(this.#basicImage(this.#reedSolomon(this.#encoder(str))));
     this.#matrix = result.matrix;
     return result;
   }
  
   async generator(str) {
-    const { matrix, mask, score } = this.generate(str);
+    const { matrix, mask, score } = this.#generate(str);
     await this.#print(matrix);
   }
 }
  
-new QRCode().generator("google.com");
+new QRCode().generator("http://localhost:3000");
