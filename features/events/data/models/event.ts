@@ -15,5 +15,10 @@ export type EventItem = {
     address?: string;
     room?: string;
     locationDetails?: string;
-    organizerIds?: string[];
+    organizers?: Organizer[];
+};
+
+export type Organizer = {
+    id: string;
+    name: string;
 };

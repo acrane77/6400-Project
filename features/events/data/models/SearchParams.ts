@@ -1,7 +1,6 @@
 
 
 export type SearchParams = {
-    organizers?: string[];
-    Keywords?: string[];
-    DateRange?: {min?: string, max?: string}
+    keywords?: string[];
+    dateRange?: {min?: string, max?: string}
 }

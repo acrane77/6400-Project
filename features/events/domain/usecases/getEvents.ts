@@ -14,16 +14,13 @@ export class GetEvents {
         const { searchParams } = new URL(request.url);
         const params: SearchParams = {};
 
-        const organizers = searchParams.getAll('organizers').filter(Boolean);
-        if (organizers.length > 0) params.organizers = organizers;
+        const keywords = [...searchParams.getAll('keywords'), ...searchParams.getAll('Keywords')].filter(Boolean);
+        if (keywords.length > 0) params.keywords = keywords;
 
-        const keywords = searchParams.getAll('Keywords').filter(Boolean);
-        if (keywords.length > 0) params.Keywords = keywords;
-
-        const minDate = searchParams.get('DateRange[min]');
-        const maxDate = searchParams.get('DateRange[max]');
+        const minDate = searchParams.get('dateRange[min]') ?? searchParams.get('DateRange[min]');
+        const maxDate = searchParams.get('dateRange[max]') ?? searchParams.get('DateRange[max]');
         if (minDate || maxDate) {
-            params.DateRange = {
+            params.dateRange = {
                 ...(minDate ? { min: minDate } : {}),
                 ...(maxDate ? { max: maxDate } : {}),
             };

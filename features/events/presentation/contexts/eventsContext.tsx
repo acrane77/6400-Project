@@ -7,6 +7,7 @@ import {
   useMemo,
   useState,
   useEffect,
+  useRef,
   type ReactNode,
 } from 'react'
 import { getEventsAPI, addUserToEvent } from '../api/apiClient'
@@ -15,14 +16,16 @@ import { CreateEventRequest } from "../../data/models/createEventRequest";
 import { useMyEvents } from './myEventsContext'
 import { useAccount } from '@/features/Account/presentation/contexts/AccountContext';
 import { toast } from '@/core/Components/toast';
+import type { SearchParams } from '@/features/events/data/models/SearchParams';
 
 
 type EventsContextValue = {
-  events: EventItem[]
-  hasMore: boolean
-  loading: boolean
+  events: EventItem[];
+  hasMore: boolean;
+  loading: boolean;
+  updateSearchParams: (params: SearchParams) => Promise<void>;
   addEvent: (event: CreateEventRequest) => Promise<void>;
-  loadMoreEvents: () => Promise<void>
+  loadMoreEvents: () => Promise<void>;
   eventSignUp: (eventId :string) => Promise<void>;
 }
 
@@ -49,6 +52,7 @@ export function EventsProvider({ children }: EventProps) {
   const [events, setEvents] = useState<EventItem[]>([])
   const [hasMore, setHasMore] = useState(true)
   const [loading, setLoading] = useState(false);
+  const requestId = useRef(0)
 
   useEffect(() => {
     let active = true
@@ -83,6 +87,27 @@ export function EventsProvider({ children }: EventProps) {
       active = false
     }
   }, [isAuthLoading, userId])
+
+  const updateSearchParams = useCallback(async (params: SearchParams) => {
+    const normalizedParams: SearchParams = {
+      keywords: params.keywords?.filter(Boolean),
+      dateRange: params.dateRange && (params.dateRange.min || params.dateRange.max)
+        ? params.dateRange
+        : undefined,
+    }
+    const currentRequestId = ++requestId.current
+    setLoading(true)
+    try {
+      const result = await getEventsAPI(normalizedParams)
+      if (currentRequestId !== requestId.current) return
+      if (result.success && result.events) {
+        setEvents(sortEventsByDate(result.events))
+        setHasMore(false)
+      }
+    } finally {
+      if (currentRequestId === requestId.current) setLoading(false)
+    }
+  }, [])
 
   const loadMoreEvents = useCallback(async () => {
     if (!hasMore) return;
@@ -130,8 +155,8 @@ export function EventsProvider({ children }: EventProps) {
   }, [user])
 
   const value = useMemo(
-    () => ({ events, hasMore, loading, addEvent, loadMoreEvents, eventSignUp }),
-    [events, hasMore, loading, addEvent,  loadMoreEvents, eventSignUp],
+    () => ({ events, hasMore, loading, updateSearchParams, addEvent, loadMoreEvents, eventSignUp }),
+    [events, hasMore, loading, updateSearchParams, addEvent, loadMoreEvents, eventSignUp],
   )
 
   return <EventsContext.Provider value={value}>{children}</EventsContext.Provider>

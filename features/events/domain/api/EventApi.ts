@@ -28,19 +28,38 @@ export class EventApiClient {
       // so date-only events scheduled for today remain in the upcoming list.
       const today = new Date()
       today.setUTCHours(0, 0, 0, 0)
-      const snapshot = await adminDb
+      const maxDate = params.dateRange?.max
+      const inclusiveMaxDate = maxDate && /^\d{4}-\d{2}-\d{2}$/.test(maxDate)
+        ? `${maxDate}T23:59:59.999Z`
+        : maxDate
+      let query = adminDb
         .collection('events')
-        .where('eventDate', '>=', params.DateRange?.min ? params.DateRange.min: today.toISOString())
-        .where('eventDate', '<=', params.DateRange?.max)
-        .orderBy('eventDate', 'asc')
-        .get()
+        .where('eventDate', '>=', params.dateRange?.min || today.toISOString())
 
-      const events = snapshot.docs.map(doc => ({
+      if (inclusiveMaxDate) {
+        query = query.where('eventDate', '<=', inclusiveMaxDate)
+      }
+
+      const snapshot = await query.orderBy('eventDate', 'asc').get()
+
+      const keywords = (params.keywords ?? [])
+        .flatMap((keyword) => keyword.toLocaleLowerCase().match(/[\p{L}\p{N}]+/gu) ?? [])
+
+      const allEvents = snapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
-      }));
+      } as EventItem))
 
-      return NextResponse.json({ success: true, body: events}, {status: 200})
+      const events = allEvents.filter((event) => {
+        if (keywords.length > 0) {
+          const searchableText = `${event.title ?? ''} ${event.description ?? ''}`.toLocaleLowerCase()
+          if (!keywords.every((keyword) => searchableText.includes(keyword))) return false
+        }
+
+        return true
+      })
+
+      return NextResponse.json({ success: true, body: events }, {status: 200})
 
     } catch (error) {
       return NextResponse.json({error: (error as Error).message }, {status: 500});

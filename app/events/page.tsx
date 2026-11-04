@@ -1,4 +1,5 @@
 import {EventList} from '@/features/events/presentation/components/EventList'
+import { SearchBar } from '@/features/events/presentation/components/SearchBar'
 
 
 export default async function EventsPage() {
@@ -19,6 +20,7 @@ export default async function EventsPage() {
           Create an event
         </a>
       </div>
+      <SearchBar/>
       <EventList/>
     </main>
   )
