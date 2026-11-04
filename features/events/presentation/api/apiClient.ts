@@ -3,6 +3,7 @@ import { User } from "@/features/Account/data/models/user";
 import { useAccount } from "@/features/Account/presentation/contexts/AccountContext";
 import { EventItem } from "../../data/models/event";
 import { CreateEventRequest } from "../../data/models/createEventRequest";
+import { generateQueryString } from "@/core/queryString";
 
 export async function createEventAPI(body: CreateEventRequest) : Promise<{event: EventItem | undefined, success: boolean}> {
     
@@ -16,9 +17,9 @@ export async function createEventAPI(body: CreateEventRequest) : Promise<{event:
     }
 }
 
-export async function getEventsAPI() : Promise<{events: EventItem[] | undefined, success: boolean}> {
+export async function getEventsAPI(params: Record<string, unknown> = {}) : Promise<{events: EventItem[] | undefined, success: boolean}> {
     
-    const response = await APIFetch("GET", "/api/events", {});
+    const response = await APIFetch("GET", `/api/events${generateQueryString(params)}`, {});
     if (!response.ok) {
         console.error('Events were not Loaded');
         return {events: [], success: false}

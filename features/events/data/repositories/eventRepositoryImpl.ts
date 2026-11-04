@@ -2,6 +2,7 @@ import { User } from '@/features/Account/data/models/user';
 import type { EventRepository } from '@/features/events/data/repositories/eventRepository'
 import { EventApiClient } from '@/features/events/domain/api/EventApi'
 import { AuthUser } from '@/core/auth'
+import { SearchParams } from '../models/SearchParams';
 
 export class EventRepositoryImpl implements EventRepository {
   constructor(private readonly apiClient = new EventApiClient()) {}
@@ -10,8 +11,8 @@ export class EventRepositoryImpl implements EventRepository {
     return this.apiClient.createEvent(event)
   }
 
-  getEvents(): Promise<Response> {
-    return this.apiClient.getEvents();
+  getEvents(params: SearchParams): Promise<Response> {
+    return this.apiClient.getEvents(params);
   }
 
   getMyEvents(ownerId: string): Promise<Response> {

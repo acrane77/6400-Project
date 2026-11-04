@@ -1,5 +1,6 @@
 import { EventRepositoryImpl } from "../../data/repositories/eventRepositoryImpl";
-
+import { requireAuth } from '@/core/auth'
+import type { SearchParams } from '../../data/models/SearchParams'
 
 export class GetEvents {
 
@@ -8,6 +9,26 @@ export class GetEvents {
     constructor(repo: EventRepositoryImpl) {this.repo = repo}
 
     async execute(request: Request): Promise<Response> {
-        return this.repo.getEvents();
+        const auth = await requireAuth(request);
+        if (auth instanceof Response) return auth;
+        const { searchParams } = new URL(request.url);
+        const params: SearchParams = {};
+
+        const organizers = searchParams.getAll('organizers').filter(Boolean);
+        if (organizers.length > 0) params.organizers = organizers;
+
+        const keywords = searchParams.getAll('Keywords').filter(Boolean);
+        if (keywords.length > 0) params.Keywords = keywords;
+
+        const minDate = searchParams.get('DateRange[min]');
+        const maxDate = searchParams.get('DateRange[max]');
+        if (minDate || maxDate) {
+            params.DateRange = {
+                ...(minDate ? { min: minDate } : {}),
+                ...(maxDate ? { max: maxDate } : {}),
+            };
+        }
+
+        return this.repo.getEvents(params);
     }
 }

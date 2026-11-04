@@ -1,8 +1,9 @@
 import type { EventItem } from '@/features/events/data/models/event'
 import { NextResponse } from 'next/server';
-import { adminDb } from '@/lib/firebaseAdmin';
+import { adminAuth, adminDb } from '@/lib/firebaseAdmin';
 import type { User } from '@/features/Account/data/models/user';
 import { AuthUser } from '@/core/auth'
+import type { SearchParams } from '@/features/events/data/models/SearchParams'
 
 export class EventApiClient {
   async createEvent(body: any): Promise<Response> {
@@ -21,7 +22,7 @@ export class EventApiClient {
     }
   }
 
-  async getEvents(): Promise<Response> {
+  async getEvents(params: SearchParams): Promise<Response> {
     try {
       // Event dates are stored as ISO strings; compare from the start of today
       // so date-only events scheduled for today remain in the upcoming list.
@@ -29,7 +30,8 @@ export class EventApiClient {
       today.setUTCHours(0, 0, 0, 0)
       const snapshot = await adminDb
         .collection('events')
-        .where('eventDate', '>=', today.toISOString())
+        .where('eventDate', '>=', params.DateRange?.min ? params.DateRange.min: today.toISOString())
+        .where('eventDate', '<=', params.DateRange?.max)
         .orderBy('eventDate', 'asc')
         .get()
 
@@ -44,6 +46,7 @@ export class EventApiClient {
       return NextResponse.json({error: (error as Error).message }, {status: 500});
     }
   }
+
 
   async getMyEvents(ownerId: string): Promise<Response> {
     try {
