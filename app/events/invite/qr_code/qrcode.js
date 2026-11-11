@@ -1,4 +1,7 @@
-class QRCode { // cd desktop/random/qrcode
+class QRCode {
+  #size;
+  #field;
+  #byteCount;
   #matrix;
   #reserved;
 
@@ -19,8 +22,19 @@ class QRCode { // cd desktop/random/qrcode
   #encoder(input) {
     const mode = [0, 1, 0, 0]; // 0100 byte mode
 
-    const bytes = Buffer.from(input, "utf8"); // UTF-8 bytes
+    const bytes = new TextEncoder().encode(input); // UTF-8 bytes
     const count = bytes.length;
+
+    const bitSizeRelation = [
+      [25, 34, 10],
+      [29, 55, 15],
+      [33, 80, 20],
+      [37, 108, 26],
+    ]
+    const match = bitSizeRelation.find(([size, capacity, field]) => count <= capacity)
+    this.#size = match[0];
+    this.#byteCount = match[1];
+    this.#field = match[2];
 
     const dataBits = []; 
     for (let i = 0; i < count; i++)
@@ -38,7 +52,7 @@ class QRCode { // cd desktop/random/qrcode
     let alternate = true; // Padding 11101100 and 00010001 alternating
     const padding1 = [1, 1, 1, 0, 1, 1, 0, 0];
     const padding2 = [0, 0, 0, 1, 0, 0, 0, 1];
-    while (bitstream.length < 864) { // Version 5 Error correction level L size 864
+    while (bitstream.length < (this.#byteCount * 8)) { // Version dependant Error correction level L data size in bits
       if (alternate) bitstream.push(...padding1);
       else bitstream.push(...padding2);
       alternate = !alternate;
@@ -98,49 +112,49 @@ class QRCode { // cd desktop/random/qrcode
     return c;
   }
 
+  #generatorPoly(degree) {
+    const exp = new Array(256);
+    const log = new Array(256);
+    let x = 1;
+    for (let i = 0; i < 255; i++) {
+      exp[i] = x;
+      log[x] = i;
+      x <<= 1;
+      if (x & 0x100) x ^= 0x11d;
+    }
+    const mul = (a, b) => (a === 0 || b === 0 ? 0 : exp[(log[a] + log[b]) % 255]);
+
+    // multiply (x + α^i) into the polynomial, one factor at a time
+    let poly = [1]; // highest degree first
+    for (let i = 0; i < degree; i++) {
+      const next = new Array(poly.length + 1).fill(0);
+      for (let j = 0; j < poly.length; j++) {
+        next[j] ^= poly[j];                  // poly * x
+        next[j + 1] ^= mul(poly[j], exp[i]); // poly * α^i
+      }
+      poly = next;
+    }
+
+    // drop the leading 1 and convert to 8-bit arrays
+    return poly.slice(1).map((n) => Array.from({ length: 8 }, (_, i) => (n >> (7 - i)) & 1));
+  }
+
   #reedSolomon(bitstream) { // 26 codewords fixed: g(26) polynomial
     const codewords = this.#toBytes(bitstream);
     const correction = structuredClone(codewords);
     const padding = [0, 0, 0, 0, 0, 0, 0, 0];
-  const gValues = [
-    [1, 1, 1, 1, 0, 1, 1, 0], // 246
-    [0, 0, 1, 1, 0, 0, 1, 1], // 51
-    [1, 0, 1, 1, 0, 1, 1, 1], // 183
-    [0, 0, 0, 0, 0, 1, 0, 0], // 4
-    [1, 0, 0, 0, 1, 0, 0, 0], // 136
-    [0, 1, 1, 0, 0, 0, 1, 0], // 98
-    [1, 1, 0, 0, 0, 1, 1, 1], // 199
-    [1, 0, 0, 1, 1, 0, 0, 0], // 152
-    [0, 1, 0, 0, 1, 1, 0, 1], // 77
-    [0, 0, 1, 1, 1, 0, 0, 0], // 56
-    [1, 1, 0, 0, 1, 1, 1, 0], // 206
-    [0, 0, 0, 1, 1, 0, 0, 0], // 24
-    [1, 0, 0, 1, 0, 0, 0, 1], // 145
-    [0, 0, 1, 0, 1, 0, 0, 0], // 40
-    [1, 1, 0, 1, 0, 0, 0, 1], // 209
-    [0, 1, 1, 1, 0, 1, 0, 1], // 117
-    [1, 1, 1, 0, 1, 0, 0, 1], // 233
-    [0, 0, 1, 0, 1, 0, 1, 0], // 42
-    [1, 0, 0, 0, 0, 1, 1, 1], // 135
-    [0, 1, 0, 0, 0, 1, 0, 0], // 68
-    [0, 1, 0, 0, 0, 1, 1, 0], // 70
-    [1, 0, 0, 1, 0, 0, 0, 0], // 144
-    [1, 0, 0, 1, 0, 0, 1, 0], // 146
-    [0, 1, 0, 0, 1, 1, 0, 1], // 77
-    [0, 0, 1, 0, 1, 0, 1, 1], // 43
-    [0, 1, 0, 1, 1, 1, 1, 0], // 94
-  ];
+    const gValues = this.#generatorPoly(this.#field);
 
-    for (let i = 0; i < 26; i++) correction.push(padding);
+    for (let i = 0; i < this.#field; i++) correction.push(padding);
 
-    for (let i = 0; i < 108; i++) { // ignores leading coefficients after using for factor
+    for (let i = 0; i < this.#byteCount; i++) { // ignores leading coefficients after using for factor
       const factor = correction[i];
-      for (let j = 1; j < 27; j++) {
+      for (let j = 1; j <= this.#field; j++) {
         correction[i + j] = this.#GFXOR(correction[i + j], this.#GFMULT(factor, gValues[j - 1]));
       }
     }
 
-    for (let i = 0; i < 26; i++) codewords.push(correction[108 + i]);
+    for (let i = 0; i < this.#field; i++) codewords.push(correction[this.#byteCount + i]);
     return this.#toBits(codewords);
   }
 
@@ -172,49 +186,49 @@ class QRCode { // cd desktop/random/qrcode
   }
 
   #basicImage(bitstream) {
-    this.#reserved = Array.from({ length: 37 }, () => Array(37).fill(false));;
-    this.#matrix = Array.from({ length: 37 }, () => Array(37).fill(0));
+    this.#reserved = Array.from({ length: this.#size }, () => Array(this.#size).fill(false));;
+    this.#matrix = Array.from({ length: this.#size }, () => Array(this.#size).fill(0));
 
     // fixed paterns
     this.#fixedPatternLargeSquare(0, 0);
-    this.#fixedPatternLargeSquare(0, 30);
-    this.#fixedPatternLargeSquare(30, 0);
-    this.#fixedPatternSmallSquare(28, 28);
+    this.#fixedPatternLargeSquare(0, this.#size - 7);
+    this.#fixedPatternLargeSquare(this.#size - 7, 0);
+    this.#fixedPatternSmallSquare(this.#size - 9, this.#size - 9);
 
     // patern seperators
     for (let i = 0; i < 8; i++) {
       this.#setFunction(7, i, 0);
       this.#setFunction(i, 7, 0);
-      this.#setFunction(7, 36 - i, 0);
-      this.#setFunction(i, 29, 0);
-      this.#setFunction(29, i, 0);
-      this.#setFunction(36 - i, 7, 0);
+      this.#setFunction(7, this.#size - 1 - i, 0);
+      this.#setFunction(i, this.#size - 8, 0);
+      this.#setFunction(this.#size - 8, i, 0);
+      this.#setFunction(this.#size - 1 - i, 7, 0);
     }
 
     // timing patterns
-    for (let i = 8; i < 29; i++) {
+    for (let i = 8; i < this.#size - 8; i++) {
       this.#setFunction(6, i, i % 2 === 0 ? 1 : 0);
       this.#setFunction(i, 6, i % 2 === 0 ? 1 : 0);
     }
 
     // reserved information pattern + reserved dark module
-    for (let i = 0; i < 37; i++) {
-      if (i < 9 || i > 28) {
+    for (let i = 0; i < this.#size; i++) {
+      if (i < 9 || i > this.#size - 9) {
         this.#reserved[8][i] = true;
         this.#reserved[i][8] = true;
       }
     }
 
     // dark module set 
-    this.#matrix[29][8] = 1; // 17, 8
+    this.#matrix[this.#size - 8][8] = 1;
 
     // place data bits
     let bitIndex = 0;
     let upward = true;
-    for (let col = 36; col > 0; col -= 2) {
+    for (let col = this.#size - 1; col > 0; col -= 2) {
       if (col === 6) col--; // skip the vertical timing column
-      for (let k = 0; k < 37; k++) {
-        const row = upward ? 36 - k : k;
+      for (let k = 0; k < this.#size; k++) {
+        const row = upward ? this.#size - 1 - k : k;
         for (let c = 0; c < 2; c++) {
           const x = col - c; // right module first, then left
           if (this.#reserved[row][x]) continue;
@@ -323,7 +337,7 @@ class QRCode { // cd desktop/random/qrcode
     return best;
   }
 
-  async #print(output) { // temporary functionality
+  async #print(output) { // temporary functionality for terminal testing
     const cols = process.stdout.columns;
     const rows = process.stdout.rows;
  
@@ -346,16 +360,20 @@ class QRCode { // cd desktop/random/qrcode
   }
  
   // Builds the finished symbol without printing it
-  #generate(str) {;
+  generate(str) {
     const result = this.#bestMask(this.#basicImage(this.#reedSolomon(this.#encoder(str))));
     this.#matrix = result.matrix;
-    return result;
+    return result.matrix;
   }
  
-  async generator(str) {
-    const { matrix, mask, score } = this.#generate(str);
+  async generatorTerminal(str) {
+    const matrix = this.generate(str);
     await this.#print(matrix);
   }
 }
+
+export function generate(str) {
+  return new QRCode().generate(str);
+}
  
-new QRCode().generator("http://localhost:3000");
+//new QRCode().generatorTerminal("google.com");
