@@ -17,6 +17,9 @@ export class GetEvents {
         const keywords = [...searchParams.getAll('keywords'), ...searchParams.getAll('Keywords')].filter(Boolean);
         if (keywords.length > 0) params.keywords = keywords;
 
+        const category = searchParams.get('category') ?? searchParams.get('Category');
+        if (category) params.category = category;
+
         const minDate = searchParams.get('dateRange[min]') ?? searchParams.get('DateRange[min]');
         const maxDate = searchParams.get('dateRange[max]') ?? searchParams.get('DateRange[max]');
         if (minDate || maxDate) {

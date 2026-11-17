@@ -3,6 +3,7 @@ export type CreateEventRequest = {
     eventDate: string;
     title: string;
     description: string;
+    category: string;
     atMun: boolean;
     capacity?: number;
     fee?: number;

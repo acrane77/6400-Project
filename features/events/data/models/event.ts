@@ -5,6 +5,7 @@ export type EventItem = {
     eventDate: string;
     title: string;
     description: string;
+    category: string;
     people: User[];
     volenteers: User[];
     ownerId: string;

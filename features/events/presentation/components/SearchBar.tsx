@@ -2,19 +2,24 @@
 
 import { useState, type FormEvent } from 'react'
 import { useEvents } from '../contexts/eventsContext'
+import { EVENT_CATEGORIES } from '@/features/events/data/models/categories'
+import CategorySelect from './CategroySelect'
 
-const inputClassName = 'w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-zinc-900 shadow-sm outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-600/20 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100'
+const inputClassName = 'w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-zinc-900 shadow-sm outline-none transition-all duration-200 hover:brightness-130 hover:scale-102 focus:border-blue-600 focus:ring-2 focus:ring-blue-600/20 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100'
 
 export function SearchBar() {
   const { updateSearchParams, loading } = useEvents()
   const [keywords, setKeywords] = useState('')
   const [minDate, setMinDate] = useState('')
   const [maxDate, setMaxDate] = useState('')
+  const [category, setCategory] = useState('')
+  const [categoryDialogOpen, setCategoryDialogOpen] = useState(false);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     await updateSearchParams({
       keywords: keywords.trim() ? [keywords.trim()] : [],
+      category: category || undefined,
       dateRange: minDate || maxDate ? { min: minDate, max: maxDate } : undefined,
     })
   }
@@ -23,6 +28,7 @@ export function SearchBar() {
     setKeywords('')
     setMinDate('')
     setMaxDate('')
+    setCategory('')
     await updateSearchParams({})
   }
 
@@ -49,7 +55,22 @@ export function SearchBar() {
 
       <fieldset className="rounded-xl border border-zinc-200 p-4 dark:border-zinc-700">
         <legend className="px-2 text-sm font-semibold">Filter events</legend>
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid gap-4 sm:grid-cols-3">
+          <div>
+            <label className="mb-1 block text-sm font-medium" htmlFor="event-category">Category</label>
+            {categoryDialogOpen && (
+              <CategorySelect
+                closeDialog={() => setCategoryDialogOpen(false)}
+                setSelectedCategory={(category) => setCategory(category)}
+            />
+            )}
+             <div
+              onClick={() => setCategoryDialogOpen(true)}
+              id="event-category"
+              className={inputClassName}
+            > {category || "All Categories"}
+            </div>
+          </div>
           <div>
             <label className="mb-1 block text-sm font-medium" htmlFor="event-date-from">Date from</label>
             <input
@@ -75,7 +96,7 @@ export function SearchBar() {
         </div>
         <div className="mt-4 flex flex-wrap justify-end gap-3">
           <button
-            className="rounded-lg border border-zinc-300 px-4 py-2 text-sm font-medium hover:bg-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-800"
+            className="rounded-lg border border-zinc-300 px-4 py-2 text-sm font-medium transition-all duration-200 hover:scale-102 dark:border-zinc-700"
             type="button"
             onClick={() => void clearFilters()}
             disabled={loading}
@@ -83,7 +104,7 @@ export function SearchBar() {
             Clear
           </button>
           <button
-            className="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-semibold text-white hover:bg-zinc-700 disabled:cursor-wait disabled:opacity-60 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-white"
+            className="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-semibold text-white transition-all duration-200 hover:scale-102 disabled:cursor-wait disabled:opacity-60 dark:bg-zinc-100 dark:text-zinc-900"
             type="submit"
             disabled={loading}
           >

@@ -5342,6 +5342,11 @@ lsofi@^2.0.0:
   resolved "https://registry.yarnpkg.com/lsofi/-/lsofi-2.0.0.tgz#7709753957651e6681d9ff5a7ee748978151218d"
   integrity sha512-XTFlOBHeuXnUGuUQI0kBb4O4oQW7qCV7MRGQja1xNpxgrI/jptlly+/5126RiRold1zgyxY520qOZUZ31V0I2A==
 
+lucide-react@^1.74.0:
+  version "1.74.0"
+  resolved "https://registry.yarnpkg.com/lucide-react/-/lucide-react-1.74.0.tgz#b537db2e3db7cdc63e71f2b3f0cb24d61d410ed2"
+  integrity sha512-A1doIs/1fj1WnPbtIT7WRiM6Kvw5NUg+BtkoOh3Shpr4obwSDVt6WxCEcNH56EWprzuCoKle1OF0RqIkojwL1A==
+
 magic-string@^0.30.21:
   version "0.30.21"
   resolved "https://registry.yarnpkg.com/magic-string/-/magic-string-0.30.21.tgz#56763ec09a0fa8091df27879fd94d19078c00d91"

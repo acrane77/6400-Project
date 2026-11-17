@@ -4,6 +4,7 @@ import { adminAuth, adminDb } from '@/lib/firebaseAdmin';
 import type { User } from '@/features/Account/data/models/user';
 import { AuthUser } from '@/core/auth'
 import type { SearchParams } from '@/features/events/data/models/SearchParams'
+import { getCategoryDescendants } from '@/features/events/data/models/categories'
 
 export class EventApiClient {
   async createEvent(body: any): Promise<Response> {
@@ -51,6 +52,7 @@ export class EventApiClient {
       } as EventItem))
 
       const events = allEvents.filter((event) => {
+        if (params.category && !getCategoryDescendants(params.category).includes(event.category ?? '')) return false
         if (keywords.length > 0) {
           const searchableText = `${event.title ?? ''} ${event.description ?? ''}`.toLocaleLowerCase()
           if (!keywords.every((keyword) => searchableText.includes(keyword))) return false

@@ -3,6 +3,8 @@
 import { useEvents } from '@/features/events/presentation/contexts/eventsContext'
 import { useState, type FormEvent } from 'react'
 import { useAccount } from '@/features/Account/presentation/contexts/AccountContext'
+import { EVENT_CATEGORIES, getCategoryName } from '@/features/events/data/models/categories'
+import CategorySelect from '@/features/events/presentation/components/CategroySelect'
 
 export default function EventCreator() {
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -10,6 +12,8 @@ export default function EventCreator() {
   const [error, setError] = useState('')
   const { isAuthLoading, isAuthenticated } = useAccount()
   const [atMun, setAtMun] = useState(true);
+  const [categoryDialogOpen, setCategoryDialogOpen] = useState(false)
+  const [selectedCategory, setSelectedCategory] = useState('')
 
   const {addEvent} = useEvents();
 
@@ -29,6 +33,7 @@ export default function EventCreator() {
         dateCreated: new Date().toISOString(),
         title: formData.get('title')?.toString().trim() ?? '',
         description: formData.get('description')?.toString().trim() ?? '',
+        category: selectedCategory,
         eventDate: eventDate ? `${eventDate}T${eventTime}:00Z` : '',
         atMun: atMun,
         room: formData.get('roomCode')?.toString().trim() ?? '',
@@ -36,6 +41,7 @@ export default function EventCreator() {
       })
 
       form.reset()
+      setSelectedCategory('')
       setMessage('Event created successfully.')
     } catch (submitError) {
       setError(
@@ -58,6 +64,20 @@ export default function EventCreator() {
       <form className="p-6" onSubmit={handleSubmit}>
         <div className="flex flex-col items-center justify-center gap-4">
           <h1 className="text-3xl">Event Creation Form</h1>
+          <div className="flex w-full max-w-md flex-col gap-2">
+            <label className="text-xl" htmlFor="category-picker">Category</label>
+            <input type="hidden" name="category" value={selectedCategory} />
+            <button
+              className="rounded-lg border border-zinc-600 bg-black px-4 py-3 text-left text-white hover:bg-zinc-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-400"
+              id="category-picker"
+              type="button"
+              aria-haspopup="dialog"
+              aria-expanded={categoryDialogOpen}
+              onClick={() => setCategoryDialogOpen(true)}
+            >
+              {getCategoryName(selectedCategory) ?? 'Choose a category'}
+            </button>
+          </div>
           <div className="flex flex-col gap-2">
             <label className="text-xl" htmlFor="title">Title</label>
             <input
@@ -146,6 +166,12 @@ export default function EventCreator() {
           </button>
         </div>
       </form>
+      {categoryDialogOpen && (
+        <CategorySelect
+          closeDialog={() => setCategoryDialogOpen(false)}
+          setSelectedCategory={(category) => setSelectedCategory(category)}
+        />
+      )}
     </div>
   )
 }
