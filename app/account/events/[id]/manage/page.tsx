@@ -1,6 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
+import MatrixDisplay from '@/app/events/invite/qr_code/MatrixDisplay'
+import { generate } from '@/app/events/invite/qr_code/qrcode'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
 import APIFetch from '@/core/APIFetch'
@@ -18,6 +20,15 @@ export default function ManageEventPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [message, setMessage] = useState('')
+
+  const matrix = useMemo(() => {
+    if (!inviteUrl) return null
+    try {
+      return generate(inviteUrl)
+    } catch {
+      return null
+    }
+  }, [inviteUrl])
 
   async function generateInvite() {
     setLoading(true)
@@ -126,6 +137,15 @@ export default function ManageEventPage() {
 
           {inviteUrl && (
             <div className="mt-4 flex flex-col gap-3">
+
+              {matrix && (
+                <div
+                  className="mx-auto overflow-hidden rounded-lg"
+                  style={{ width: 400, height: 400 }}
+                >
+                  <MatrixDisplay matrix={matrix} border={2} />
+                </div>
+              )}
 
               <label className="font-semibold">
                 Invitation Link
