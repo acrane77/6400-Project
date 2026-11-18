@@ -23,6 +23,7 @@ type EventsContextValue = {
   events: EventItem[];
   hasMore: boolean;
   loading: boolean;
+  dateRange?: SearchParams['dateRange'];
   updateSearchParams: (params: SearchParams) => Promise<void>;
   addEvent: (event: CreateEventRequest) => Promise<void>;
   loadMoreEvents: () => Promise<void>;
@@ -52,6 +53,7 @@ export function EventsProvider({ children }: EventProps) {
   const [events, setEvents] = useState<EventItem[]>([])
   const [hasMore, setHasMore] = useState(true)
   const [loading, setLoading] = useState(false);
+  const [dateRange, setDateRange] = useState<SearchParams['dateRange']>()
   const requestId = useRef(0)
 
   useEffect(() => {
@@ -102,6 +104,7 @@ export function EventsProvider({ children }: EventProps) {
       if (currentRequestId !== requestId.current) return
       if (result.success && result.events) {
         setEvents(sortEventsByDate(result.events))
+        setDateRange(normalizedParams.dateRange)
         setHasMore(false)
       }
     } finally {
@@ -155,8 +158,8 @@ export function EventsProvider({ children }: EventProps) {
   }, [user])
 
   const value = useMemo(
-    () => ({ events, hasMore, loading, updateSearchParams, addEvent, loadMoreEvents, eventSignUp }),
-    [events, hasMore, loading, updateSearchParams, addEvent, loadMoreEvents, eventSignUp],
+    () => ({ events, hasMore, loading, dateRange, updateSearchParams, addEvent, loadMoreEvents, eventSignUp }),
+    [events, hasMore, loading, dateRange, updateSearchParams, addEvent, loadMoreEvents, eventSignUp],
   )
 
   return <EventsContext.Provider value={value}>{children}</EventsContext.Provider>

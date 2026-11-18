@@ -25,8 +25,8 @@ export class EventApiClient {
 
   async getEvents(params: SearchParams): Promise<Response> {
     try {
-      // Event dates are stored as ISO strings; compare from the start of today
-      // so date-only events scheduled for today remain in the upcoming list.
+      // Use today as the default lower bound, but allow an explicit date filter
+      // to include older events in the calendar.
       const today = new Date()
       today.setUTCHours(0, 0, 0, 0)
       const maxDate = params.dateRange?.max
@@ -35,7 +35,9 @@ export class EventApiClient {
         : maxDate
       let query = adminDb
         .collection('events')
-        .where('eventDate', '>=', params.dateRange?.min || today.toISOString())
+      if (params.dateRange?.min || !params.dateRange?.max) {
+        query = query.where('eventDate', '>=', params.dateRange?.min || today.toISOString())
+      }
 
       if (inclusiveMaxDate) {
         query = query.where('eventDate', '<=', inclusiveMaxDate)
