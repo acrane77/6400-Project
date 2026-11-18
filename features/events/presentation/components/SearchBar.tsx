@@ -68,7 +68,7 @@ export function SearchBar() {
               onClick={() => setCategoryDialogOpen(true)}
               id="event-category"
               className={inputClassName}
-            > {category || "All Categories"}
+            > {category || "All Events"}
             </div>
           </div>
           <div>

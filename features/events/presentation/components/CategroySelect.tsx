@@ -1,7 +1,7 @@
 'use client'
 import { useState } from "react"
 import { EVENT_CATEGORIES } from '@/features/events/data/models/categories'
-import { CalendarHeart, HandHelping, GraduationCap, Dices, BriefcaseBusiness } from 'lucide-react'
+import { CalendarHeart, HandHelping, GraduationCap, Dices, BriefcaseBusiness, Menu } from 'lucide-react'
 
 const categoryIcons = {
   b1000: CalendarHeart,
@@ -37,6 +37,23 @@ export default function CategorySelect({ closeDialog, setSelectedCategory  }: { 
               >✕</button>
             </div>
             <ul className="space-y-2">
+              <li key={'b0'} className={`overflow-hidden rounded-lg border-3 border-zinc-800 ${itemHoverAnimation}`}>
+                <div className="flex items-center bg-zinc-950">
+                  <button
+                      key={'b0'}
+                      className={`block w-full rounded-md px-3 py-3 text-left ${itemHoverAnimation}`}
+                      type="button"
+                      onClick={() => {
+                        setSelectedCategory('')
+                        closeDialog()
+                      }} >
+                      <span className="flex items-center gap-3">
+                        <Menu aria-hidden="true" className="size-7 text-blue-400" />
+                        All Events
+                      </span>
+                  </button>
+                </div>
+              </li>
               {EVENT_CATEGORIES.filter((item) => !item.b).map((parent) => {
                 const expanded = expandedCategories.includes(parent.id)
                 const Icon = categoryIcons[parent.id as keyof typeof categoryIcons]
@@ -55,7 +72,7 @@ export default function CategorySelect({ closeDialog, setSelectedCategory  }: { 
                           <Icon aria-hidden="true" className="size-7 text-blue-400" />
                           {parent.name}
                         </span>
-                        <span aria-hidden="true" className="text-zinc-400">{expanded ? '−' : '+'}</span>
+                        <span aria-hidden="true" className="text-zinc-400 text-xl font-bold">{expanded ? '−' : '+'}</span>
                       </button>
                     </div>
                     {expanded && (
@@ -64,7 +81,7 @@ export default function CategorySelect({ closeDialog, setSelectedCategory  }: { 
                           className={`block w-full rounded-md px-3 py-2 text-left text-sm text-zinc-300 ${itemHoverAnimation}`}
                           type="button"
                           onClick={() => {
-                            setSelectedCategory(parent.id)
+                            setSelectedCategory(parent.name)
                             closeDialog()
                           }}
                         >All {parent.name} events</button>
@@ -76,7 +93,7 @@ export default function CategorySelect({ closeDialog, setSelectedCategory  }: { 
                               className={`block w-full rounded-md px-3 py-2 text-left ${itemHoverAnimation}`}
                               type="button"
                               onClick={() => {
-                                setSelectedCategory(child.id)
+                                setSelectedCategory(child.name)
                                 closeDialog()
                               }}
                             >{child.name}</button>
