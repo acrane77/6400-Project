@@ -26,7 +26,7 @@ export default function LoginPage() {
 
             const next = new URLSearchParams(window.location.search).get('next')
 
-            if (next?.startsWith('/events/invite/')) {
+            if (next?.startsWith('/events/')) {
                 window.location.assign(next)
                 return
             }
