@@ -1,8 +1,10 @@
 import type { EventItem } from '@/features/events/data/models/event'
 import { NextResponse } from 'next/server';
-import { adminDb } from '@/lib/firebaseAdmin';
+import { adminAuth, adminDb } from '@/lib/firebaseAdmin';
 import type { User } from '@/features/Account/data/models/user';
 import { AuthUser } from '@/core/auth'
+import type { SearchParams } from '@/features/events/data/models/SearchParams'
+import { getCategoryDescendants } from '@/features/events/data/models/categories'
 
 export class EventApiClient {
   async createEvent(body: any): Promise<Response> {
@@ -21,29 +23,53 @@ export class EventApiClient {
     }
   }
 
-  async getEvents(): Promise<Response> {
+  async getEvents(params: SearchParams): Promise<Response> {
     try {
-      // Event dates are stored as ISO strings; compare from the start of today
-      // so date-only events scheduled for today remain in the upcoming list.
+      // Use today as the default lower bound, but allow an explicit date filter
+      // to include older events in the calendar.
       const today = new Date()
       today.setUTCHours(0, 0, 0, 0)
-      const snapshot = await adminDb
+      const maxDate = params.dateRange?.max
+      const inclusiveMaxDate = maxDate && /^\d{4}-\d{2}-\d{2}$/.test(maxDate)
+        ? `${maxDate}T23:59:59.999Z`
+        : maxDate
+      let query = adminDb
         .collection('events')
-        .where('eventDate', '>=', today.toISOString())
-        .orderBy('eventDate', 'asc')
-        .get()
+      if (params.dateRange?.min || !params.dateRange?.max) {
+        query = query.where('eventDate', '>=', params.dateRange?.min || today.toISOString())
+      }
 
-      const events = snapshot.docs.map(doc => ({
+      if (inclusiveMaxDate) {
+        query = query.where('eventDate', '<=', inclusiveMaxDate)
+      }
+
+      const snapshot = await query.orderBy('eventDate', 'asc').get()
+
+      const keywords = (params.keywords ?? [])
+        .flatMap((keyword) => keyword.toLocaleLowerCase().match(/[\p{L}\p{N}]+/gu) ?? [])
+
+      const allEvents = snapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
-      }));
+      } as EventItem))
 
-      return NextResponse.json({ success: true, body: events}, {status: 200})
+      const events = allEvents.filter((event) => {
+        if (params.category && !getCategoryDescendants(params.category).includes(event.category ?? '')) return false
+        if (keywords.length > 0) {
+          const searchableText = `${event.title ?? ''} ${event.description ?? ''}`.toLocaleLowerCase()
+          if (!keywords.every((keyword) => searchableText.includes(keyword))) return false
+        }
+
+        return true
+      })
+
+      return NextResponse.json({ success: true, body: events }, {status: 200})
 
     } catch (error) {
       return NextResponse.json({error: (error as Error).message }, {status: 500});
     }
   }
+
 
   async getMyEvents(ownerId: string): Promise<Response> {
     try {
