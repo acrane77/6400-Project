@@ -1,0 +1,70 @@
+name: Continuous Integration
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-test:
+    name: Build and test
+    runs-on: ubuntu-latest
+
+    env:
+      NEXT_PUBLIC_USE_FIREBASE_EMULATORS: "true"
+      NEXT_PUBLIC_FIREBASE_PROJECT_ID: demo-event-planner
+      NEXT_PUBLIC_FIREBASE_DEMO_PROJECT_ID: demo-event-planner
+      NEXT_PUBLIC_FIREBASE_API_KEY: demo-key
+      NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: demo-event-planner.firebaseapp.com
+      FIREBASE_AUTH_EMULATOR_HOST: 127.0.0.1:9099
+      FIRESTORE_EMULATOR_HOST: 127.0.0.1:8081
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Set up Java for Firebase emulators
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Install Yarn
+        run: npm install -g yarn@1.22.22
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Create evidence directory
+        run: mkdir -p evidence/tests
+
+      - name: Run unit and QR tests
+        shell: bash
+        run: yarn test 2>&1 | tee evidence/tests/unit-tests.txt
+
+      - name: Build application
+        shell: bash
+        run: yarn build --webpack 2>&1 | tee evidence/tests/build.txt
+
+      - name: Install browser
+        run: yarn playwright install --with-deps chromium
+
+      - name: Run frontend integration tests
+        shell: bash
+        run: yarn test:e2e 2>&1 | tee evidence/tests/frontend-tests.txt
+
+      - name: Upload test evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-evidence
+          path: evidence/tests/

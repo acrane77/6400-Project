@@ -31,7 +31,12 @@ class QRCode {
       [33, 80, 20],
       [37, 108, 26],
     ]
-    const match = bitSizeRelation.find(([size, capacity, field]) => count <= capacity)
+    const match = bitSizeRelation.find(([size, capacity, field]) => count <= capacity - 2)
+
+    if (!match) {
+      throw new RangeError('QR Code Input is Over 106 Bytes!')
+    }
+
     this.#size = match[0];
     this.#byteCount = match[1];
     this.#field = match[2];
