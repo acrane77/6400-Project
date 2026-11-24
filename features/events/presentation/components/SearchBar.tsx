@@ -6,7 +6,7 @@ import { EVENT_CATEGORIES } from '@/features/events/data/models/categories'
 import { getCategoryName } from '@/features/events/data/models/categories'
 import CategorySelect from './CategroySelect'
 
-const inputClassName = 'w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-zinc-900 shadow-sm outline-none transition-all duration-200 hover:brightness-130 hover:scale-102 focus:border-blue-600 focus:ring-2 focus:ring-blue-600/20 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100'
+const inputClassName = 'w-full rounded-md border border-border bg-background px-3 py-2 text-foreground outline-none transition-colors placeholder:text-muted-foreground focus:border-primary [color-scheme:dark]'
 
 export function SearchBar() {
   const { updateSearchParams, loading } = useEvents()
@@ -39,14 +39,14 @@ export function SearchBar() {
         <label className="sr-only" htmlFor="event-search">Search events</label>
         <input
           id="event-search"
-          className={`${inputClassName} flex-1 rounded-full px-5`}
+          className={`${inputClassName} flex-1 px-5`}
           value={keywords}
           onChange={(event) => setKeywords(event.target.value)}
           placeholder="Search events by keyword..."
           type="search"
         />
         <button
-          className="rounded-full bg-blue-700 px-6 py-2 font-semibold text-white transition-colors hover:bg-blue-800 disabled:cursor-wait disabled:opacity-60"
+          className="rounded-md bg-primary px-6 py-2 font-semibold text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-60"
           type="submit"
           disabled={loading}
         >
@@ -54,7 +54,7 @@ export function SearchBar() {
         </button>
       </div>
 
-      <fieldset className="rounded-xl border border-zinc-200 p-4 dark:border-zinc-700">
+      <fieldset className="rounded-lg border border-border bg-card p-4">
         <legend className="px-2 text-sm font-semibold">Filter events</legend>
         <div className="grid gap-4 sm:grid-cols-3">
           <div>
@@ -97,7 +97,7 @@ export function SearchBar() {
         </div>
         <div className="mt-4 flex flex-wrap justify-end gap-3">
           <button
-            className="rounded-lg border border-zinc-300 px-4 py-2 text-sm font-medium transition-all duration-200 hover:scale-102 dark:border-zinc-700"
+            className="rounded-md border border-border px-4 py-2 text-sm font-medium transition-colors hover:bg-muted disabled:opacity-60"
             type="button"
             onClick={() => void clearFilters()}
             disabled={loading}
@@ -105,7 +105,7 @@ export function SearchBar() {
             Clear
           </button>
           <button
-            className="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-semibold text-white transition-all duration-200 hover:scale-102 disabled:cursor-wait disabled:opacity-60 dark:bg-zinc-100 dark:text-zinc-900"
+            className="rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-60"
             type="submit"
             disabled={loading}
           >

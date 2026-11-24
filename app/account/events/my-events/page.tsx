@@ -10,11 +10,11 @@ export default function MyEventsPage() {
   const [showCreate, setShowCreate] = useState(false)
 
   return (
-    <main className="mx-auto w-full max-w-4xl flex-1 px-6 py-10">
+    <main className="mx-auto w-full max-w-5xl flex-1 px-6 py-10">
       <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold">Your events</h1>
-          <p className="mt-2 text-zinc-600 dark:text-zinc-400">
+          <h1 className="text-3xl font-bold">Your Events</h1>
+          <p className="mt-2 text-muted-foreground">
             Your events are listed by date, starting with the soonest.
           </p>
         </div>
