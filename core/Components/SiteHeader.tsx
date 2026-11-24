@@ -2,19 +2,50 @@
 
 import { useEffect, useState } from 'react'
 import { useAccount } from '../../features/Account/presentation/contexts/AccountContext'
+import { usePathname } from 'next/navigation'
 
 export default function SiteHeader() {
   const { isAuthenticated, isAuthLoading, logout } = useAccount()
+  const pathname = usePathname()
 
   return (
-    <header className="border-b border-border bg-background px-6 py-4 text-foreground">
-      <nav className="mx-auto flex w-full max-w-4xl gap-6" aria-label="Main navigation">
-        <a className="font-semibold hover:underline" href="/events">Events</a>
+    <header className="border-b border-border bg-card px-6 text-foreground">
+      <nav className="mx-auto flex h-14 w-full max-w-5xl items-center gap-6" aria-label="Main navigation">
+        <a
+          href="/events"
+          className="mr-auto font-mono text-lg font-semibold tracking-tight text-primary"
+        >
+          Event Planner
+        </a>
+        <a
+          href="/events"
+          className="relative grid h-full place-items-center font-medium text-foreground hover:text-primary"
+        >
+          Events
+
+          {pathname === '/events' && (
+            <span className="absolute bottom-0 left-0 h-1 w-full bg-primary" />
+          )}
+        </a>
         {!isAuthLoading && isAuthenticated && (
         <>
-        <a className="font-semibold hover:underline" href="/account/events/create">Create event</a>
-        <a className="font-semibold hover:underline" href="/account/events/my-events">My Events</a>
-        <button className="font-semibold hover:underline" onClick={logout}>Sign-out</button>
+        <a
+          href="/account/events/my-events"
+          className="relative grid h-full place-items-center font-medium text-foreground hover:text-primary"
+        >
+          My Events
+
+          {pathname.startsWith('/account/events/') && (
+            <span className="absolute bottom-0 left-0 h-1 w-full bg-primary" />
+          )}
+        </a>
+        <button
+          type="button"
+          onClick={() => void logout()}
+          className="grid h-full place-items-center font-medium text-foreground hover:text-primary"
+        >
+          Sign-out
+        </button>
         </>
         )}
         {!isAuthLoading && !isAuthenticated && (

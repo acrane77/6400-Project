@@ -12,12 +12,6 @@ export default async function EventsPage() {
             Events are listed by date, starting with the soonest.
           </p>
         </div>
-        <a
-          className="rounded-lg bg-blue-700 px-4 py-2 font-semibold text-white hover:bg-blue-800"
-          href="/account/events/create"
-        >
-          Create an event
-        </a>
       </div>
       <EventList/>
     </main>
