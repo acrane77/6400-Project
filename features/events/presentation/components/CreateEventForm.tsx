@@ -6,6 +6,8 @@ import { useAccount } from '@/features/Account/presentation/contexts/AccountCont
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { getCategoryName, isEventCategory } from '@/features/events/data/models/categories'
+import CategorySelect from './CategroySelect'
 
 export default function CreateEventForm({
   onCreated,
@@ -19,6 +21,8 @@ export default function CreateEventForm({
   const [error, setError] = useState('')
   const { isAuthLoading, isAuthenticated } = useAccount()
   const [atMun, setAtMun] = useState(true);
+  const [categoryDialogOpen, setCategoryDialogOpen] = useState(false)
+  const [selectedCategory, setSelectedCategory] = useState('')
 
   const {addEvent} = useEvents();
 
@@ -34,6 +38,10 @@ export default function CreateEventForm({
     const eventTime = formData.get('eventTime')?.toString();
     console.log(eventDate, eventTime)
     try {
+
+      if(!isEventCategory(selectedCategory)) {
+        throw new Error('Please select an event category.')
+      }
       await addEvent({
         dateCreated: new Date().toISOString(),
         title: formData.get('title')?.toString().trim() ?? '',
@@ -42,9 +50,12 @@ export default function CreateEventForm({
         atMun: atMun,
         room: formData.get('roomCode')?.toString().trim() ?? '',
         address: formData.get('address')?.toString().trim() ?? '',
+        category: selectedCategory,
       })
 
       form.reset()
+
+      setSelectedCategory('')
 
       if (onCreated) {
         onCreated()
@@ -71,7 +82,32 @@ export default function CreateEventForm({
 
   return (
     <form onSubmit={handleSubmit} className="w-full space-y-5">
-  
+
+      <div className="space-y-2">
+        <Label htmlFor="category-picker" className="text-sm">
+          Category
+        </Label>
+ 
+        <Button
+          id="category-picker"
+          type="button"
+          variant="outline"
+          aria-haspopup="dialog"
+          aria-expanded={categoryDialogOpen}
+          onClick={() => setCategoryDialogOpen(true)}
+          className="h-11 w-full justify-start rounded-none text-base"
+        >
+          {getCategoryName(selectedCategory) ?? 'Choose a category'}
+        </Button>
+      </div>
+ 
+      {categoryDialogOpen && (
+        <CategorySelect
+          closeDialog={() => setCategoryDialogOpen(false)}
+          setSelectedCategory={setSelectedCategory}
+        />
+      )} 
+
       <div className="space-y-2">
         <Label htmlFor="title" className="text-sm">
           Event title

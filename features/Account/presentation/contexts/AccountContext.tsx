@@ -48,7 +48,7 @@ async function toAccount(firebaseUser: FirebaseUser, forceRefresh = false): Prom
 export function AccountProvider({ children }: { children: ReactNode }) {
 	const [user, setUser] = useState<User | null>(null)
 	const [loading, setLoading] = useState(false)
-	const [authLoading, setAuthLoading] = useState(true)
+	const [authLoading, setAuthLoading] = useState(false)
 
 	const login = useCallback(async (credentials: Credentials) => {
 		setLoading(true)

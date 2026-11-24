@@ -1,6 +1,7 @@
 import type { EventItem } from '@/features/events/data/models/event'
 import type { EventRepository } from '@/features/events/data/repositories/eventRepository'
 import { requireAuth } from '@/core/auth'
+import { isEventCategory } from '@/features/events/data/models/categories'
 
 export class CreateEvent {
 
@@ -24,7 +25,8 @@ export class CreateEvent {
     
     if (typeof input?.eventDate !== 'string' || Number.isNaN(Date.parse(input.eventDate))
       || typeof input.title !== 'string' || !input.title.trim()
-      || typeof input.description !== 'string' || !input.description.trim()) {
+      || typeof input.description !== 'string' || !input.description.trim()
+      || !isEventCategory(input.category)) {
       return Response.json({ success: false, error: 'Bad Request: Provide a valid event date, title, and description.' }, { status: 400 })
     }
 
@@ -41,6 +43,7 @@ export class CreateEvent {
       eventDate: new Date(input.eventDate).toISOString(),
       title: input.title.trim(),
       description: input.description.trim(),
+      category: input.category,
       people: Array.isArray(input.people) ? input.people as EventItem['people'] : [],
       volenteers: Array.isArray(input.volenteers) ? input.volenteers as EventItem['volenteers'] : [],
       ownerId,

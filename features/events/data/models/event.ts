@@ -5,6 +5,7 @@ export type EventItem = {
     eventDate: string;
     title: string;
     description: string;
+    category: string;
     people: User[];
     volenteers: User[];
     ownerId: string;
@@ -15,5 +16,10 @@ export type EventItem = {
     address?: string;
     room?: string;
     locationDetails?: string;
-    organizerIds?: string[];
+    organizers?: Organizer[];
+};
+
+export type Organizer = {
+    id: string;
+    name: string;
 };
