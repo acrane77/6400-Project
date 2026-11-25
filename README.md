@@ -1,40 +1,133 @@
-# 6400-Project
+# Event Planner
 
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+A web app for planning and promoting campus events, built for ECE 6400: Software Development Practices. Organizers create events, invite volunters, and track their advertisement campaigns. Participants browse a calendar of upcoming events, search, and sign up.
+
+## Features
+
+- **Accounts and roles:** Email/password sign-up and login with Firebase Auth. Each user has a role: `DEVELOPER`, `ORGANIZER`, `VOLUNTEER` or `PARTICIPANT`. The server checks the role before allowing restricted actions.
+- **Events:** Create events with a title, description, date, location (at MUN or an address), and category. Events are only visible to the people who should see them.
+- **Event calendar:** Browse upcoming events in a month or week view.
+- **Search:** Filter events by keywords, category (including subcategories) and date range.
+- **Sign-ups:** Participants sign up for events, and organizers see who is attending.
+- **Invites:** Organizers generate invite links, each with a scannable QR code.
+- **QR code generator:** A QR code encoder written from scratch (versions 1–5, error-correction level L, up to 108 characters).
+- **QR poster tracking:** Each poster for an event gets its own QR code. Scanning it records the scan and opens the event's public page.
+- **Poster analytics:** A dashboard of scans, sign-ups and conversion for each poster. *(It currently shows sample data.)*
+
+## Tech Stack
+
+- [Next.js 16](https://nextjs.org) (App Router) with React 19 and TypeScript
+- Tailwind CSS v4 with shadcn-style UI components
+- Firebase Auth and Cloud Firestore
+- Firebase Local Emulator Suite for local development
+- Node's built-in test runner for unit tests
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
+
+- [Node.js](https://nodejs.org) 24 or newer
+- [Yarn](https://yarnpkg.com)
+- Java 21 or newer
+
+### Install
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+yarn install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Run locally (with the Firebase emulators)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+./run_demo.sh
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+This script sets the environment variables for the emulators, starts the Auth and Firestore emulators, and then starts the Next.js dev server.
 
-## Learn More
+| Service | URL |
+|---|---|
+| App | http://localhost:3000 |
+| Emulator UI | http://localhost:4000 |
+| Auth emulator | 127.0.0.1:9099 |
+| Firestore emulator | 127.0.0.1:8081 |
 
-To learn more about Next.js, take a look at the following resources:
+The emulators don't keep data between runs, so create a new account each time you start the demo.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### Run against a real Firebase project
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Create a `.env.local` file in the project root:
 
-## Deploy on Vercel
+```bash
+NEXT_PUBLIC_FIREBASE_API_KEY=...
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=...
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=...
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=...
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=...
+NEXT_PUBLIC_FIREBASE_APP_ID=...
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Then run:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
-# event-planner
-# Event-server
+```bash
+yarn dev        # development
+yarn build && yarn start   # production
+```
+
+### Tests
+
+```bash
+node --require ./tests/register-typescript.cjs --test \
+  core/tests/auth.test.cjs \
+  features/Account/tests/accountRoutes.test.cjs \
+  features/events/tests/usecases.test.cjs
+```
+
+The tests use a mocked Firebase Admin SDK (`tests/mocks/firebaseAdmin.cjs`), so they don't need the emulators.
+
+### Lint
+
+```bash
+yarn lint
+```
+
+## Project Structure
+
+Code is organized by feature. Each feature has `data` (models and repositories), `domain` (API clients and use cases), `presentation` (React components, contexts and client API calls) and `tests`.
+
+```
+├── app/                          # Next.js App Router: pages and API routes
+│   ├── account/
+│   │   ├── login/                # Login page
+│   │   ├── signup/               # Sign-up page
+│   │   ├── events/
+│   │   │   ├── my-events/        # Your events, plus the create-event dialog
+│   │   │   ├── create/           # Redirects to My Events
+│   │   │   └── [id]/manage/      # Invites, members and posters for an event
+│   │   └── analytics/            # Poster analytics dashboard
+│   │       └── [posterId]/       # Analytics for one poster
+│   ├── events/
+│   │   ├── page.tsx              # Event calendar and search
+│   │   ├── [id]/                 # Public event page (QR scans land here)
+│   │   └── invite/
+│   │       ├── [token]/          # Accept an invite
+│   │       └── qr_code/          # QR code encoder and display
+│   ├── q/[code]/                 # QR poster short link: records the scan, then redirects
+│   ├── rbac_test/                # Developer-only page for changing user roles
+│   └── api/
+│       ├── account/              # Account and role endpoints
+│       └── events/               # Events, search, sign-ups, invites, members, posters
+├── core/                         # Shared code: auth checks, fetch wrapper, query parsing, header
+├── features/
+│   ├── Account/                  # Users, roles, auth context, user list dialog
+│   ├── events/                   # Events, categories, search, calendar, create form
+│   └── analytics/                # Posters, scan tracking, charts, QR download
+├── components/ui/                # Shared UI components (Button, Card, Badge, Input, Label)
+├── lib/                          # Firebase client and admin setup, cn() helper
+├── tests/                        # Test runner setup and Firebase mocks
+├── functions/                    # Firebase Cloud Functions
+├── public/                       # Static files
+├── firebase.json                 # Firebase and emulator config
+├── firestore.rules               # Firestore security rules
+├── firestore.indexes.json        # Firestore indexes
+└── run_demo.sh                   # Starts the emulators and the dev server
+```
