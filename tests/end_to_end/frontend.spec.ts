@@ -39,9 +39,16 @@ test('User can create an event and generate a QR code',
         name: 'Sign Up',
         exact: true,
     }).click()
-
+    
+    // Confirms that the redirect happened
+    await expect(page).toHaveURL(/\/events$/, {
+        timeout: 15000,
+    })
     await expect(
-        page.getByText('Account created successfully.')
+        page.getByRole('link', {
+            name: 'My Events',
+            exact: true,
+        })
     ).toBeVisible()
 
     // Open event creation
