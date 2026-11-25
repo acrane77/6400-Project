@@ -14,10 +14,10 @@ export default async function AnalyticsHomePage() {
   )
 
   return (
-    <main className="mx-auto w-full max-w-4xl flex-1 px-6 py-10">
+    <main className="mx-auto w-full max-w-5xl flex-1 px-6 py-10">
       <div className="mb-8">
         <h1 className="text-3xl font-bold">Poster analytics</h1>
-        <p className="mt-2 text-zinc-600 dark:text-zinc-400">
+        <p className="mt-2 text-muted-foreground">
           See how many people scan each poster&apos;s QR code, and how many of them sign up.
         </p> 
       </div>
@@ -42,30 +42,30 @@ export default async function AnalyticsHomePage() {
             <li key={poster.id}>
               <Link
                 href={`/account/analytics/${poster.id}`}
-				className="block h-full rounded-xl border border-zinc-200 p-5 transition-colors hover:border-blue-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 dark:border-zinc-700 dark:hover:border-blue-500"
+				className="block h-full rounded-lg border border-border bg-card p-5 transition-colors hover:border-primary/50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
                     <h3 className="font-semibold">{poster.label}</h3>
-                    <p className="text-sm text-zinc-600 dark:text-zinc-400">{poster.eventTitle}</p>
+                    <p className="text-sm text-muted-foreground">{poster.eventTitle}</p>
                   </div>
                   <Sparkline values={poster.dailyScans} />
                 </div>
                 <dl className="mt-4 grid grid-cols-3 gap-2 text-sm">
                   <div>
-                    <dt className="text-zinc-500">Scans</dt>
+                    <dt className="text-muted-foreground">Scans</dt>
                     <dd className="text-lg font-semibold">{formatCount(poster.totals.scans)}</dd>
                   </div>
                   <div>
-                    <dt className="text-zinc-500">Signups</dt>
+                    <dt className="text-muted-foreground">Signups</dt>
                     <dd className="text-lg font-semibold">{formatCount(poster.totals.signups)}</dd>
                   </div>
                   <div>
-                    <dt className="text-zinc-500">Conversion</dt>
+                    <dt className="text-muted-foreground">Conversion</dt>
                     <dd className="text-lg font-semibold">{formatPercent(poster.totals.conversion)}</dd>
                   </div>
                 </dl>
-                <p className="mt-3 text-xs text-zinc-500">
+                <p className="mt-3 text-xs text-muted-foreground">
                   Posted {formatShortDate(poster.postedOn)} · {poster.location}
                 </p>
               </Link>

@@ -22,7 +22,7 @@ export function Sparkline({ values, width = 120, height = 36 }: SparklineProps) 
         strokeWidth={2}
         strokeLinejoin="round"
         strokeLinecap="round"
-        className="stroke-zinc-400 dark:stroke-zinc-500"
+        className="stroke-viz-series"
       />
       <circle cx={x(last)} cy={y(values[last])} r={4} strokeWidth={2} className="fill-viz-series stroke-background" />
     </svg>
