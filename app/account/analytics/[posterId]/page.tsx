@@ -36,30 +36,30 @@ export default async function PosterAnalyticsPage({ params }: PageProps<'/accoun
   }))
 
   return (
-    <main className="mx-auto w-full max-w-4xl flex-1 px-6 py-10">
-      <Link href="/account/analytics" className="text-sm text-blue-600 hover:underline dark:text-blue-400">
+    <main className="mx-auto w-full max-w-5xl flex-1 px-6 py-10">
+      <Link href="/account/analytics" className="text-sm text-primary hover:underline">
         ← All posters
       </Link>
 
       <div className="mt-4 mb-8 flex flex-wrap items-start justify-between gap-6">
         <div className="min-w-0">
           <h1 className="text-3xl font-bold">{poster.label}</h1>
-          <p className="mt-2 text-zinc-600 dark:text-zinc-400">
+          <p className="mt-2 text-muted-foreground">
             {poster.eventTitle} · {formatEventDate(poster.eventDate)}
           </p>
-          <p className="mt-1 text-sm text-zinc-500">
+          <p className="mt-1 text-sm text-muted-foreground">
             {poster.location} · posted {formatShortDate(poster.postedOn)} ({poster.daily.length} days)
           </p>
 		</div>
 
         {/* Placeholder until the QR generator is hooked up. */}
         <div className="flex w-40 flex-col items-center gap-2 text-center">
-          <div className="flex size-32 items-center justify-center rounded-lg border-2 border-dashed border-zinc-300 text-xs text-zinc-500 dark:border-zinc-600">
+          <div className="flex size-32 items-center justify-center rounded-lg border-2 border-dashed border-border text-xs text-muted-foreground">
             QR code
             <br />
             coming soon
           </div>
-          <code className="break-all text-xs text-zinc-600 dark:text-zinc-400">{poster.tracking}</code>
+          <code className="break-all text-xs text-muted-foreground">{poster.tracking}</code>
         </div>
       </div>
 
@@ -93,9 +93,9 @@ export default async function PosterAnalyticsPage({ params }: PageProps<'/accoun
           tickEvery={3}
         />
 
-        <section className="rounded-xl border border-zinc-200 p-5 dark:border-zinc-700">
+        <section className="rounded-lg border border-border bg-card p-5">
           <h2 className="text-lg font-semibold">From scan to signup</h2>
-          <p className="mb-4 text-sm text-zinc-600 dark:text-zinc-400">
+          <p className="mb-4 text-sm text-muted-foreground">
             Percentages are relative to the step above.
           </p>
           <FunnelBars

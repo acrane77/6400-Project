@@ -27,15 +27,19 @@ export function EventPage() {
           {/* <button type="button" aria-label={`Next ${mode}`} onClick={() => moveView(1)} className="rounded-lg border border-zinc-300 p-2 hover:bg-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-800"><ChevronRight className="size-5" /></button> */}
         </div>
         <div className="flex items-center gap-2">
-          <div className="flex rounded-lg border border-zinc-300 p-1 dark:border-zinc-700" aria-label="Event view" role="group">
+          <div className="flex rounded-lg border border-border bg-card p-1" aria-label="Event view" role="group">
             {(['Calendar', 'List'] as const).map((value) => (
               <button 
                 key={value}
                 type="button" 
                 aria-pressed={mode === value} 
                 onClick={() => setMode(value)} 
-                className={`rounded-md px-3 py-1.5 text-sm capitalize ${mode === value ? 'bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900' : 'hover:bg-zinc-100 dark:hover:bg-zinc-800'}`}>
-                
+                className={`rounded-md px-3 py-1.5 transition-colors ${
+                  mode === value
+                    ? 'bg-primary text-primary-foreground'
+                    : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                }`}>
+
                 {value == 'Calendar' && <Calendar size={20}/>}
                 {value == 'List' && <List size={20}/>}
               </button>
@@ -44,8 +48,6 @@ export function EventPage() {
         </div>
       </div>
 
-      {loading && events.length === 0 && <p>Loading events…</p>}
-      {!loading && events.length === 0 && <p className="rounded-xl border border-zinc-200 p-5 dark:border-zinc-700">No events found for these filters.</p>}
       {mode == 'Calendar' && <EventCalendar/>}
       {mode == 'List' && <EventList/>}
     </section>

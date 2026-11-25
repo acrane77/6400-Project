@@ -80,8 +80,8 @@ export function EventCalendar() {
     <section aria-label="Events calendar" className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2">
-          <button type="button" aria-label={`Previous ${mode}`} onClick={() => moveView(-1)} className="rounded-lg border border-zinc-300 p-2 hover:bg-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-800"><ChevronLeft className="size-5" /></button>
-          <button type="button" aria-label={`Next ${mode}`} onClick={() => moveView(1)} className="rounded-lg border border-zinc-300 p-2 hover:bg-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-800"><ChevronRight className="size-5" /></button>
+          <button type="button" aria-label={`Previous ${mode}`} onClick={() => moveView(-1)} className="rounded-lg border border-border p-2 hover:bg-muted"><ChevronLeft className="size-5" /></button>
+          <button type="button" aria-label={`Next ${mode}`} onClick={() => moveView(1)} className="rounded-lg border border-border p-2 hover:bg-muted"><ChevronRight className="size-5" /></button>
           <h2 className="min-w-44 text-xl font-semibold">{heading}</h2>
         </div>
         <div className="flex items-center gap-2">
@@ -89,25 +89,25 @@ export function EventCalendar() {
           <input id="calendar-month" aria-label="Jump to month and year" type="month" value={`${viewDate.getFullYear()}-${String(viewDate.getMonth() + 1).padStart(2, '0')}`} onChange={(event) => {
             const [year, month] = event.target.value.split('-').map(Number)
             if (year && month) setViewDate(new Date(year, month - 1, 1))
-          }} className="rounded-lg border border-zinc-300 bg-white px-3 py-2 text-zinc-900 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100" />
-          <div className="flex rounded-lg border border-zinc-300 p-1 dark:border-zinc-700" aria-label="Calendar view" role="group">
-            {(['month', 'week'] as const).map((value) => <button key={value} type="button" aria-pressed={mode === value} onClick={() => setMode(value)} className={`rounded-md px-3 py-1.5 text-sm capitalize ${mode === value ? 'bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900' : 'hover:bg-zinc-100 dark:hover:bg-zinc-800'}`}>{value}</button>)}
+          }} className="rounded-lg border border-border bg-card px-3 py-2 text-foreground [color-scheme:dark]" />
+          <div className="flex rounded-lg border border-border p-1"  aria-label="Calendar view" role="group">
+            {(['month', 'week'] as const).map((value) => <button key={value} type="button" aria-pressed={mode === value} onClick={() => setMode(value)} className={`rounded-md px-3 py-1.5 text-sm capitalize ${mode === value ? 'bg-primary text-primary-foreground' : 'hover:bg-muted'}`}>{value}</button>)}
           </div>
         </div>
       </div>
 
       {loading && events.length === 0 && <p>Loading events…</p>}
-      {!loading && events.length === 0 && <p className="rounded-xl border border-zinc-200 p-5 dark:border-zinc-700">No events found for these filters.</p>}
+      {!loading && events.length === 0 && <p className="rounded-xl border border-border p-5">No events found for these filters.</p>}
 
-      <div className="grid grid-cols-7 overflow-hidden rounded-xl border border-zinc-200 dark:border-zinc-700">
-        {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => <div key={day} className="border-b border-zinc-200 bg-zinc-50 p-2 text-center text-xs font-semibold dark:border-zinc-700 dark:bg-zinc-900">{day}</div>)}
+      <div className="grid grid-cols-7 overflow-hidden rounded-xl border border-border">
+        {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => <div key={day} className="border-b border-border bg-card p-2 text-center text-xs font-semibold">{day}</div>)}
         {calendarDays.map((day) => {
           const dayEvents = eventsByDay.get(dateKey(day)) ?? []
           const outsideMonth = mode === 'month' && day.getMonth() !== viewDate.getMonth()
-          return <div key={dateKey(day)} className={`min-h-28 border-b border-r border-zinc-200 p-1.5 dark:border-zinc-700 sm:min-h-36 sm:p-2 ${outsideMonth ? 'bg-zinc-50/70 text-zinc-400 dark:bg-zinc-950/60' : ''}`}>
+          return <div key={dateKey(day)} className={`min-h-28 border-b border-r border-border p-1.5 sm:min-h-36 sm:p-2 ${outsideMonth ? 'bg-muted/50 text-muted-foreground/50' : ''}`}>
             <time dateTime={dateKey(day)} className="mb-1 block text-right text-xs font-medium">{day.getDate()}</time>
             <ul className="space-y-1">
-              {dayEvents.map((event) => <li key={event.id} className="rounded-md bg-blue-100 px-1.5 py-1 text-xs text-blue-950 dark:bg-blue-950 dark:text-blue-100">
+              {dayEvents.map((event) => <li key={event.id} className="rounded-md bg-primary/10 px-1.5 py-1 text-xs text-primary">
                 <p className="truncate font-semibold" title={event.title}>{event.title}</p>
                 <p>{parseDate(event.eventDate)?.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit', timeZone: 'UTC' })}</p>
                 <button type="button" onClick={() => void eventSignUp(event.id)} className="mt-0.5 underline">Sign up</button>

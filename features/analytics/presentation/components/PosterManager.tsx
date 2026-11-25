@@ -58,23 +58,23 @@ export default function PosterManager({ eventId }: { eventId: string }) {
 	}
 
 	return (
-		<section className="mb-8 rounded-xl border border-zinc-700 p-6">
+		<section className="mb-8 rounded-lg border border-border bg-card p-6">
 			<h2 className="mb-2 text-xl font-semibold">Posters</h2>
-			<p className="mb-6 text-zinc-500">Create a QR code for each poster you post.</p>
+			<p className="mb-6 text-muted-foreground">Create a QR code for each poster you post.</p>
 			<form onSubmit={handleCreate} className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end">
-				<label className="flex flex-1 flex-col gap-1 text-sm">Poster name<input name="label" required maxLength={80} className="rounded-lg border border-zinc-600 bg-transparent p-2"/> </label>
-				<label className="flex flex-1 flex-col gap-1 text-sm">Location (optional)<input name="location" maxLength={120} className="rounded-lg border border-zinc-600 bg-transparent p-2"/> </label>
-				<button type="submit" disabled={creating} className="rounded-lg bg-blue-600 px-4 py-2 font-semibold text-white hover:bg-blue-700 disabled:opacity-50"> 
+				<label className="flex flex-1 flex-col gap-1 text-sm">Poster name<input name="label" required maxLength={80} className="h-11 rounded-none border border-border bg-background px-3 text-base outline-none focus-visible:border-ring"/> </label>
+				<label className="flex flex-1 flex-col gap-1 text-sm">Location (optional)<input name="location" maxLength={120} className="h-11 rounded-none border border-border bg-background px-3 text-base outline-none focus-visible:border-ring"/> </label>
+				<button type="submit" disabled={creating} className="h-11 rounded-none bg-primary px-4 font-semibold text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50"> 
 			{creating ? 'Creating...' : 'Create QR code'}
 				</button>
 			</form>
 
-		{error && <p className="mb-4 text-red-500">{error}</p>}
+		{error && <p className="mb-4 text-destructive">{error}</p>}
 
 		{loading ? (
-			<p className="text-zinc-500">Loading posters...</p>
+			<p className="text-muted-foreground">Loading posters...</p>
 		) : posters.length === 0 ? (
-			<p className="text-zinc-500">No posters yet.</p>
+			<p className="text-muted-foreground">No posters yet.</p>
 		) : (
 			<ul className="flex flex-col gap-4">
 			{posters.map((poster) => (
@@ -108,27 +108,27 @@ function PosterRow({ poster }: { poster: Poster }) {
 	}
 
 	return (
-		<li className="flex flex-col gap-4 rounded-lg border border-zinc-700 p-4 sm:flex-row">
+		<li className="flex flex-col gap-4 rounded-lg border border-border bg-background p-4 sm:flex-row">
 		<div className="size-36 shrink-0 overflow-hidden rounded-md">
 			{matrix ? (
 				<MatrixDisplay matrix={matrix} border={4} />
 				) : (
-					<p className="text-sm text-red-500">Could not generate a QR code.</p>
+					<p className="text-sm text-destructive">Could not generate a QR code.</p>
 			)}
 		</div>
 
 		<div className="flex min-w-0 flex-1 flex-col gap-1">
 			<h3 className="font-semibold">{poster.label}</h3>
-			{poster.location && <p className="text-sm text-zinc-500">{poster.location}</p>}
+			{poster.location && <p className="text-sm text-muted-foreground">{poster.location}</p>}
 			<p className="text-sm">
 				{poster.scanCount} {poster.scanCount === 1 ? 'scan' : 'scans'}
 				{poster.lastScanTime && ` · last ${new Date(poster.lastScanTime).toLocaleString()}`}
 			</p>
-			<code className="break-all text-xs text-zinc-500">{url}</code>
+			<code className="break-all text-xs text-muted-foreground">{url}</code>
 
 				<div className="mt-2 flex flex-wrap gap-2">
-				<button type="button" disabled={!matrix} onClick={() => matrix && downloadQrPng(matrix, fileNameFor(poster.label))} className="rounded-lg border border-blue-600 px-3 py-1 text-sm hover:bg-blue-600 hover:text-white disabled:opacity-50">Download PNG</button>
-				<button type="button" onClick={copyLink} className="rounded-lg border border-zinc-600 px-3 py-1 text-sm hover:bg-zinc-800">{copied ? 'Copied!' : 'Copy link'}</button>
+				<button type="button" disabled={!matrix} onClick={() => matrix && downloadQrPng(matrix, fileNameFor(poster.label))} className="rounded-md border border-primary/40 px-3 py-1.5 text-sm text-primary transition-colors hover:bg-primary/10 disabled:opacity-50">Download PNG</button>
+				<button type="button" onClick={copyLink} className="rounded-md border border-border px-3 py-1.5 text-sm transition-colors hover:bg-muted">{copied ? 'Copied!' : 'Copy link'}</button>
 			</div>
 		</div>
 	</li>

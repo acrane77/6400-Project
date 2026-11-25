@@ -93,6 +93,7 @@ export function EventsProvider({ children }: EventProps) {
   const updateSearchParams = useCallback(async (params: SearchParams) => {
     const normalizedParams: SearchParams = {
       keywords: params.keywords?.filter(Boolean),
+      category: params.category || undefined,
       dateRange: params.dateRange && (params.dateRange.min || params.dateRange.max)
         ? params.dateRange
         : undefined,

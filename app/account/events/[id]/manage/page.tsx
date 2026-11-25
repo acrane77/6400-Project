@@ -8,7 +8,11 @@ import Link from 'next/link'
 import APIFetch from '@/core/APIFetch'
 import { useAccount } from '@/features/Account/presentation/contexts/AccountContext'
 import EventMembers from '@/features/events/presentation/components/EventMembers'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import PosterManager from '@/features/analytics/presentation/components/PosterManager'
+
 type EventRole = 'ORGANIZER' | 'VOLUNTEER' | 'PARTICIPANT'
 
 export default function ManageEventPage() {
@@ -85,7 +89,7 @@ export default function ManageEventPage() {
   }
 
   return (
-    <main className="mx-auto max-w-3xl p-8">
+    <main className="mx-auto w-full max-w-5xl px-6 py-10">
 
       <h1 className="mb-8 text-3xl font-bold">
         Manage Event
@@ -93,21 +97,21 @@ export default function ManageEventPage() {
 	  <EventMembers eventId={id} />
       <PosterManager eventId={id} />
 
-      <section className="rounded-xl border border-zinc-700 p-6">
+      <section className="rounded-lg border border-border bg-card p-6">
 
         <h2 className="mb-4 text-xl font-semibold">
           Invite People
         </h2>
 
-        <p className="mb-6 text-zinc-500">
+        <p className="mb-6 text-sm text-muted-foreground">
           Generate an invitation link to add someone to your event.
         </p>
 
         <div className="flex flex-col gap-4">
 
-          <label htmlFor="role">
+          <Label htmlFor="role" className="text-sm">
             Invitation Role
-          </label>
+          </Label>
 
           <select
             id="role"
@@ -117,57 +121,58 @@ export default function ManageEventPage() {
               setInviteUrl('')
               setMessage('')
             }}
-            className="rounded-lg border border-zinc-600 bg-zinc-900 p-3 text-white"
+            className="h-11 w-full rounded-none border border-border bg-background px-3 text-base text-foreground outline-none focus-visible:border-ring
+                        focus-visible:ring-1 [color-scheme:dark]"
           >
             <option value="ORGANIZER">Organizer</option>
             <option value="VOLUNTEER">Volunteer</option>
             <option value="PARTICIPANT">Participant</option>
           </select>
 
-          <button
+          <Button
             onClick={generateInvite}
             disabled={loading}
-            className="rounded-lg bg-blue-600 px-4 py-3 font-semibold text-white hover:bg-blue-700 disabled:opacity-50"
+            className="h-11 w-full rounded-none text-base"
           >
             {loading ? 'Generating...' : 'Generate Invitation Link'}
-          </button>
+          </Button>
 
           {error && (
-            <p className="text-red-500">{error}</p>
+            <p className="text-sm text-destructive" role="alert">{error}</p>
           )}
-
           {inviteUrl && (
-            <div className="mt-4 flex flex-col gap-3">
+            <div className="mt-4 flex flex-col gap-3 border-t border-border pt-6">
 
               {matrix && (
-                <div
-                  className="mx-auto overflow-hidden rounded-lg"
-                  style={{ width: 400, height: 400 }}
-                >
+                <div className="mx-auto aspect-square w-full max-w-[400px] overflow-hidden rounded-md border border-border">
                   <MatrixDisplay matrix={matrix} border={2} />
                 </div>
               )}
 
-              <label className="font-semibold">
+              <Label htmlFor="invite-link" className="text-sm">
                 Invitation Link
-              </label>
+              </Label>
 
-              <input
+              <Input
+                id="invite-link"
                 type="text"
                 readOnly
                 value={inviteUrl}
-                className="w-full rounded-lg border border-zinc-600 bg-transparent p-3"
+                className="h-11 rounded-none border-border bg-background px-3 text-base md:text-base"
               />
 
-              <button
+              <Button
                 onClick={copyInvite}
-                className="rounded-lg bg-green-700 px-4 py-2 text-white hover:bg-green-800"
+                variant="outline"
+                className="h-11 rounded-none text-base"
               >
                 Copy Link
-              </button>
+              </Button>
 
               {message && (
-                <p className="text-green-500">{message}</p>
+                <p className="text-sm text-primary" role="status">
+                  {message}
+                </p>
               )}
 
             </div>
@@ -178,7 +183,7 @@ export default function ManageEventPage() {
 
       <Link
         href="/account/events/my-events"
-        className="mt-8 inline-block text-blue-500 hover:underline"
+        className="mt-8 inline-block text-sm font-medium text-primary hover:underline"
       >
         Back to My Events
       </Link>

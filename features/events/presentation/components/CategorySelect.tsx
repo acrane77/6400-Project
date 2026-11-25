@@ -11,12 +11,12 @@ const categoryIcons = {
   b5000: BriefcaseBusiness,
 } as const
 
-const itemHoverAnimation = " outline-none transition-all duration-200 hover:brightness-130 hover:scale-102"
+const itemHoverAnimation = "transition-colors hover:bg-muted"
 export default function CategorySelect({ closeDialog, setSelectedCategory  }: { closeDialog: () => void, setSelectedCategory: (category: string) => void  }) {
       const [expandedCategories, setExpandedCategories] = useState<string[]>([])
     
    return <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
           onMouseDown={(event) => {
             if (event.target === event.currentTarget) closeDialog()
           }}
@@ -24,21 +24,21 @@ export default function CategorySelect({ closeDialog, setSelectedCategory  }: { 
           <section
             aria-labelledby="category-dialog-title"
             aria-modal="true"
-            className="max-h-[85vh] w-full max-w-lg overflow-y-auto rounded-2xl border border-zinc-700 bg-black p-5 text-white shadow-2xl"
+            className="max-h-[85vh] w-full max-w-lg overflow-y-auto rounded-lg border border-border bg-card p-5 text-foreground shadow-xl"
             role="dialog"
           >
             <div className="mb-4 flex items-center justify-between gap-4">
-              <h2 className="text-2xl font-semibold" id="category-dialog-title">Choose a category</h2>
+              <h2 className="text-xl font-semibold" id="category-dialog-title">Choose a category</h2>
               <button
-                className="rounded-md px-3 py-1 text-zinc-300 hover:bg-zinc-800 hover:text-white"
+                className="rounded-md px-3 py-1 text-muted-foreground hover:bg-muted hover:text-foreground"
                 type="button"
                 aria-label="Close category picker"
                 onClick={() => closeDialog()}
               >✕</button>
             </div>
             <ul className="space-y-2">
-              <li key={'b0'} className={`overflow-hidden rounded-lg border-3 border-zinc-800 ${itemHoverAnimation}`}>
-                <div className="flex items-center bg-zinc-950">
+              <li key={'b0'} className={`overflow-hidden rounded-lg border border-border ${itemHoverAnimation}`}>
+                <div className="flex items-center bg-background">
                   <button
                       key={'b0'}
                       className={`block w-full rounded-md px-3 py-3 text-left ${itemHoverAnimation}`}
@@ -48,7 +48,7 @@ export default function CategorySelect({ closeDialog, setSelectedCategory  }: { 
                         closeDialog()
                       }} >
                       <span className="flex items-center gap-3">
-                        <Menu aria-hidden="true" className="size-7 text-blue-400" />
+                        <Menu aria-hidden="true" className="size-5 text-primary" />
                         All Events
                       </span>
                   </button>
@@ -58,8 +58,8 @@ export default function CategorySelect({ closeDialog, setSelectedCategory  }: { 
                 const expanded = expandedCategories.includes(parent.id)
                 const Icon = categoryIcons[parent.id as keyof typeof categoryIcons]
                 return (
-                  <li key={parent.id} className={`overflow-hidden rounded-lg border-3 border-zinc-800 ${itemHoverAnimation}`}>
-                    <div className="flex items-center bg-zinc-950">
+                  <li key={parent.id} className={`overflow-hidden rounded-lg border border-border ${itemHoverAnimation}`}>
+                    <div className="flex items-center bg-background">
                       <button
                         className="flex flex-1 items-center justify-between gap-3 px-3 py-3 text-left font-medium"
                         type="button"
@@ -69,16 +69,16 @@ export default function CategorySelect({ closeDialog, setSelectedCategory  }: { 
                           : [...current, parent.id])}
                       >
                         <span className="flex items-center gap-3">
-                          <Icon aria-hidden="true" className="size-7 text-blue-400" />
+                          <Icon aria-hidden="true" className="size-5 text-primary" />
                           {parent.name}
                         </span>
-                        <span aria-hidden="true" className="text-zinc-400 text-xl font-bold">{expanded ? '−' : '+'}</span>
+                        <span aria-hidden="true" className="text-muted-foreground text-xl font-bold">{expanded ? '−' : '+'}</span>
                       </button>
                     </div>
                     {expanded && (
-                      <div className="space-y-1 border-t border-zinc-800 p-2 pl-12">
+                      <div className="space-y-1 border-t border-border p-2 pl-12">
                         <button
-                          className={`block w-full rounded-md px-3 py-2 text-left text-sm text-zinc-300 ${itemHoverAnimation}`}
+                          className={`block w-full rounded-md px-3 py-2 text-left text-sm text-muted-foreground ${itemHoverAnimation}`}
                           type="button"
                           onClick={() => {
                             setSelectedCategory(parent.id)
