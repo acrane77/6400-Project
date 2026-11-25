@@ -1,0 +1,57 @@
+yarn run v1.22.22
+$ next build --webpack
+▲ Next.js 16.3.6 (webpack)
+✓ Running next.config.ts took 23ms
+⚠ No build cache found. Please configure build caching for faster rebuilds. Read more: https://nextjs.org/docs/messages/no-cache
+Attention: Next.js now collects completely anonymous telemetry regarding usage.
+This information is used to shape Next.js' roadmap and prioritize features.
+You can learn more, including how to opt-out if you'd not like to participate in this anonymous program, by visiting the following URL:
+https://nextjs.org/telemetry
+
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 7.8s
+  Running TypeScript ...
+  Finished TypeScript in 3.3s ...
+  Collecting page data using 3 workers ...
+  Generating static pages using 3 workers (0/17) ...
+WARNING: You are using the Auth Emulator, which is intended for local testing only.  Do not use with production credentials.
+  Generating static pages using 3 workers (4/17) 
+  Generating static pages using 3 workers (8/17) 
+  Generating static pages using 3 workers (12/17) 
+✓ Generating static pages using 3 workers (17/17) in 392ms
+  Finalizing page optimization ...
+  Collecting build traces ...
+
+Route (app)
+┌ ○ /
+├ ○ /_not-found
+├ ○ /account/analytics
+├ ƒ /account/analytics/[posterId]
+├ ƒ /account/events/[id]/manage
+├ ○ /account/events/create
+├ ○ /account/events/my-events
+├ ○ /account/login
+├ ○ /account/signup
+├ ƒ /api/account
+├ ƒ /api/account/role
+├ ƒ /api/events
+├ ƒ /api/events/[id]
+├ ƒ /api/events/[id]/invites
+├ ƒ /api/events/[id]/members
+├ ƒ /api/events/[id]/posters
+├ ƒ /api/events/invites/[token]
+├ ƒ /api/events/invites/accept
+├ ƒ /api/events/my-events
+├ ƒ /api/events/signup
+├ ○ /events
+├ ƒ /events/[id]
+├ ƒ /events/invite/[token]
+├ ƒ /q/[code]
+└ ○ /rbac_test
+
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+
+Done in 26.06s.
