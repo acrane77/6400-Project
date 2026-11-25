@@ -7,23 +7,32 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "node --require ./tests/register-typescript.cjs --test features/events/__tests__/usecases.test.cjs"
+    "test": "node --require ./tests/register-typescript.cjs --test core/tests/auth.test.cjs features/Account/tests/accountRoutes.test.cjs features/events/tests/usecases.test.cjs tests/qr.test.cjs",
+    "test:e2e": "firebase emulators:exec --only auth,firestore --project demo-event-planner \"playwright test\""
   },
   "dependencies": {
+    "@base-ui/react": "^1.9.0",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "cn": "^0.5.2",
     "firebase": "^13.1.0",
     "firebase-admin": "^14.5.0",
     "firebase-tools": "^15.34.1",
+    "lucide-react": "^1.74.0",
     "next": "16.3.6",
     "react": "19.2.8",
-    "react-dom": "19.2.8"
+    "react-dom": "19.2.8",
+    "tailwind-merge": "^3.7.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.65.1",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.3.6",
+    "jsqr": "^1.4.0",
     "tailwindcss": "^4",
     "typescript": "^5"
   },

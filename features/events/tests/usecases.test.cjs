@@ -73,6 +73,7 @@ describe('Events use cases', () => {
           eventDate: '2026-12-01',
           title: 'Demo',
           description: 'Description',
+          category: 'b4000',
         }, 'participant-token')
       )
 
@@ -113,7 +114,7 @@ describe('Events use cases', () => {
       let created
       const repository = { ...mockRepository(), createEvent: async (event) => { created = event; return jsonResponse(201, { body: event }) } }
       const response = await new CreateEvent(repository).execute(authorizedRequest({
-        eventDate: '2026-12-01', title: '  Demo  ', description: '  A description  ', atMun: true,
+        eventDate: '2026-12-01', title: '  Demo  ', description: '  A description  ', category: 'b4000', atMun: true,
         capacity: '25', fee: '10.5', address: '  UC  ', room: '  Room 1  ', people: 'not-an-array',
       }))
 
@@ -134,9 +135,54 @@ describe('Events use cases', () => {
   describe('GetEvents', () => {
     it('returns the repository response', async () => {
       const expected = jsonResponse(200, { success: true, body: [{ id: 'event-1' }] })
+      const expectedBody = await expected.clone().json()
       const repository = { getEvents: async () => expected }
-      const response = await new GetEvents(repository).execute(new Request('http://localhost/api/events'))
-      assert.equal(response, expected)
+      const response = await new GetEvents(repository).execute(new Request('http://localhost/api/events', {
+        headers: { Authorization: 'Bearer valid-token' },
+      }))
+      assert.equal(response.status, expected.status)
+      assert.deepEqual(await response.json(), expectedBody)
+    })
+
+    it('parses repeated keywords, category, and date range from the search URL', async () => {
+      let receivedParams
+      const repository = {
+        getEvents: async (params) => {
+          receivedParams = params
+          return jsonResponse(200, { success: true, body: [] })
+        },
+      }
+      const response = await new GetEvents(repository).execute(new Request(
+        'http://localhost/api/events?keywords=board&keywords=games&category=b4000&dateRange%5Bmin%5D=2026-12-01&dateRange%5Bmax%5D=2026-12-31',
+        { headers: { Authorization: 'Bearer valid-token' } },
+      ))
+
+      assert.equal(response.status, 200)
+      assert.deepEqual(receivedParams, {
+        keywords: ['board', 'games'],
+        category: 'b4000',
+        dateRange: { min: '2026-12-01', max: '2026-12-31' },
+      })
+    })
+
+    it('accepts the legacy capitalized search parameter names', async () => {
+      let receivedParams
+      const repository = {
+        getEvents: async (params) => {
+          receivedParams = params
+          return jsonResponse(200)
+        },
+      }
+      await new GetEvents(repository).execute(new Request(
+        'http://localhost/api/events?Keywords=holiday&Category=b1000&DateRange%5Bmin%5D=2026-12-01',
+        { headers: { Authorization: 'Bearer valid-token' } },
+      ))
+
+      assert.deepEqual(receivedParams, {
+        keywords: ['holiday'],
+        category: 'b1000',
+        dateRange: { min: '2026-12-01' },
+      })
     })
   })
 
@@ -187,6 +233,62 @@ describe('Events use cases', () => {
 })
 
 describe('EventApiClient Firestore behavior', () => {
+  function mockEventsQuery(documents) {
+    const filters = []
+    let orderBy
+    const query = {
+      where(field, operator, value) {
+        filters.push({ field, operator, value })
+        return query
+      },
+      orderBy(field, direction) {
+        orderBy = { field, direction }
+        return query
+      },
+      async get() {
+        return { docs: documents.map(({ id, ...data }) => ({ id, data: () => data })) }
+      },
+    }
+    adminDb.collection = (name) => {
+      assert.equal(name, 'events')
+      return query
+    }
+    return { filters, getOrderBy: () => orderBy }
+  }
+
+  it('searches titles and descriptions case-insensitively, requiring every keyword', async () => {
+    mockEventsQuery([
+      { id: 'match', title: 'Winter Celebration', description: 'Student gathering', category: 'b1100', eventDate: '2099-12-01T12:00:00.000Z' },
+      { id: 'one-term', title: 'Winter party', description: 'Student social', category: 'b1100', eventDate: '2099-12-02T12:00:00.000Z' },
+      { id: 'wrong-category', title: 'Winter Celebration', description: 'Student gathering', category: 'b4100', eventDate: '2099-12-03T12:00:00.000Z' },
+    ])
+
+    const response = await new EventApiClient().getEvents({ keywords: [' WINTER, celebration '], category: 'b1000' })
+    assert.equal(response.status, 200)
+    assert.deepEqual((await response.json()).body.map((event) => event.id), ['match'])
+  })
+
+  it('applies inclusive minimum and date-only maximum filters to the Firestore query', async () => {
+    const query = mockEventsQuery([])
+    const response = await new EventApiClient().getEvents({ dateRange: { min: '2026-12-01', max: '2026-12-31' } })
+
+    assert.equal(response.status, 200)
+    assert.deepEqual(query.filters, [
+      { field: 'eventDate', operator: '>=', value: '2026-12-01' },
+      { field: 'eventDate', operator: '<=', value: '2026-12-31T23:59:59.999Z' },
+    ])
+    assert.deepEqual(query.getOrderBy(), { field: 'eventDate', direction: 'asc' })
+  })
+
+  it('uses the supplied upper date bound when no minimum is set', async () => {
+    const query = mockEventsQuery([])
+    await new EventApiClient().getEvents({ dateRange: { max: '2026-12-31' } })
+
+    assert.deepEqual(query.filters, [
+      { field: 'eventDate', operator: '<=', value: '2026-12-31T23:59:59.999Z' },
+    ])
+  })
+
   it('returns not found when deleting an event that does not exist', async () => {
     adminDb.collection = () => ({ doc: () => ({ get: async () => ({ exists: false }) }) })
     const response = await new EventApiClient().deleteEvent('missing-event', { uid: 'user-1', role: 'ORGANIZER' })
