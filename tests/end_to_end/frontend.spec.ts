@@ -13,13 +13,9 @@ test('Signup rejects incorrect passwords', async ({ page }) => {
         name: 'Sign Up',
         exact: true,
     }).click()
-    await expect(page).toHaveURL(/\/events$/, {
-        timeout: 15000,
-    })
-    await page.getByRole('link', {
-        name: 'My Events',
-        exact: true,
-    }).click()
+    await expect(
+        page.getByText('Passwords do not Match')
+    ).toBeVisible()
 })
 
 test('User can create an event and generate a QR code',
