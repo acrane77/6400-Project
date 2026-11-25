@@ -36,14 +36,15 @@ export default function LoginPage() {
       })
 
       form.reset()
-      if (next?.startsWith('/events/')) {
-          window.location.assign(next)
-          return
-      }
 
       const next = new URLSearchParams(
         window.location.search
       ).get("next")
+
+      if (next?.startsWith('/events/')) {
+          window.location.assign(next)
+          return
+      }
 
       if (next?.startsWith("/events/invite/")) {
         window.location.assign(next)
