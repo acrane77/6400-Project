@@ -36,6 +36,10 @@ export default function LoginPage() {
       })
 
       form.reset()
+      if (next?.startsWith('/events/')) {
+          window.location.assign(next)
+          return
+      }
 
       const next = new URLSearchParams(
         window.location.search

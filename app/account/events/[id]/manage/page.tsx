@@ -11,6 +11,7 @@ import EventMembers from '@/features/events/presentation/components/EventMembers
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import PosterManager from '@/features/analytics/presentation/components/PosterManager'
 
 type EventRole = 'ORGANIZER' | 'VOLUNTEER' | 'PARTICIPANT'
 
@@ -93,7 +94,8 @@ export default function ManageEventPage() {
       <h1 className="mb-8 text-3xl font-bold">
         Manage Event
       </h1>
-      <EventMembers eventId={id} />
+	  <EventMembers eventId={id} />
+      <PosterManager eventId={id} />
 
       <section className="rounded-lg border border-border bg-card p-6">
 

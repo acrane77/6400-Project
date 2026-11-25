@@ -28,6 +28,8 @@
 
   --destructive: #fb7185;
 
+  --viz-series: #84e1bc;
+
   --radius: 0.875rem;
 }
 
@@ -58,7 +60,10 @@
   --color-ring: var(--ring);
   --color-destructive: var(--destructive);
 
+  --color-viz-series: var(--viz-series);
+
   --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
 
   --radius-lg: var(--radius);
 }

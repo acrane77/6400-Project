@@ -46,6 +46,16 @@ export default function SiteHeader() {
         >
           Sign-out
         </button>
+        <a
+          href="/account/analytics"
+          className="relative grid h-full place-items-center font-medium text-foreground hover:text-primary"
+        >
+          Analytics
+
+          {pathname.startsWith('/account/analytics') && (
+            <span className="absolute bottom-0 left-0 h-1 w-full bg-primary" />
+          )}
+        </a>
         </>
         )}
         {!isAuthLoading && !isAuthenticated && (
