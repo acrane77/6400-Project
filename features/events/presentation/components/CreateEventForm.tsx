@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { getCategoryName, isEventCategory } from '@/features/events/data/models/categories'
-import CategorySelect from './CategroySelect'
+import CategorySelect from './CategorySelect'
 
 export default function CreateEventForm({
   onCreated,

@@ -39,13 +39,6 @@ export default function SiteHeader() {
             <span className="absolute bottom-0 left-0 h-1 w-full bg-primary" />
           )}
         </a>
-        <button
-          type="button"
-          onClick={() => void logout()}
-          className="grid h-full place-items-center font-medium text-foreground hover:text-primary"
-        >
-          Sign-out
-        </button>
         <a
           href="/account/analytics"
           className="relative grid h-full place-items-center font-medium text-foreground hover:text-primary"
@@ -56,6 +49,13 @@ export default function SiteHeader() {
             <span className="absolute bottom-0 left-0 h-1 w-full bg-primary" />
           )}
         </a>
+        <button
+          type="button"
+          onClick={() => void logout()}
+          className="grid h-full place-items-center font-medium text-foreground hover:text-primary"
+        >
+          Sign-out
+        </button>
         </>
         )}
         {!isAuthLoading && !isAuthenticated && (
