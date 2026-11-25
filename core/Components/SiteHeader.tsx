@@ -14,6 +14,7 @@ export default function SiteHeader() {
         <>
         <a className="font-semibold hover:underline" href="/account/events/create">Create event</a>
         <a className="font-semibold hover:underline" href="/account/events/my-events">My Events</a>
+		<a className="font-semibold hover:underline" href="/account/analytics">Analytics</a>
         <button className="font-semibold hover:underline" onClick={logout}>Sign-out</button>
         </>
         )}

@@ -4,7 +4,7 @@ import { useEvents } from '@/features/events/presentation/contexts/eventsContext
 import { useState, type FormEvent } from 'react'
 import { useAccount } from '@/features/Account/presentation/contexts/AccountContext'
 import { EVENT_CATEGORIES, getCategoryName } from '@/features/events/data/models/categories'
-import CategorySelect from '@/features/events/presentation/components/CategroySelect'
+import CategorySelect from '@/features/events/presentation/components/CategorySelect'
 
 export default function EventCreator() {
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -128,7 +128,7 @@ export default function EventCreator() {
               name="atMun"
               type="checkbox"
               checked={atMun}
-              onClick={() => setAtMun((prev) => {return !prev})}
+              onChange={(e) => setAtMun(e.target.checked)}
             />
           </div>
           {atMun && (

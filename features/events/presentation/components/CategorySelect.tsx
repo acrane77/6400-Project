@@ -81,7 +81,7 @@ export default function CategorySelect({ closeDialog, setSelectedCategory  }: { 
                           className={`block w-full rounded-md px-3 py-2 text-left text-sm text-zinc-300 ${itemHoverAnimation}`}
                           type="button"
                           onClick={() => {
-                            setSelectedCategory(parent.name)
+                            setSelectedCategory(parent.id)
                             closeDialog()
                           }}
                         >All {parent.name} events</button>
@@ -93,7 +93,7 @@ export default function CategorySelect({ closeDialog, setSelectedCategory  }: { 
                               className={`block w-full rounded-md px-3 py-2 text-left ${itemHoverAnimation}`}
                               type="button"
                               onClick={() => {
-                                setSelectedCategory(child.name)
+                                setSelectedCategory(child.id)
                                 closeDialog()
                               }}
                             >{child.name}</button>
