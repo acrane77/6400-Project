@@ -5,6 +5,8 @@ import type { User } from '@/features/Account/data/models/user';
 import { AuthUser } from '@/core/auth'
 import type { SearchParams } from '@/features/events/data/models/SearchParams'
 import { getCategoryDescendants } from '@/features/events/data/models/categories'
+import type { Query } from 'firebase-admin/firestore'
+
 
 export class EventApiClient {
   async createEvent(body: any): Promise<Response> {
@@ -33,8 +35,11 @@ export class EventApiClient {
       const inclusiveMaxDate = maxDate && /^\d{4}-\d{2}-\d{2}$/.test(maxDate)
         ? `${maxDate}T23:59:59.999Z`
         : maxDate
-      let query = adminDb
+      let query: Query = adminDb
         .collection('events')
+      if (params.category) {
+        query = query.where('category', 'in', getCategoryDescendants(params.category))
+      }
       if (params.dateRange?.min || !params.dateRange?.max) {
         query = query.where('eventDate', '>=', params.dateRange?.min || today.toISOString())
       }
@@ -54,7 +59,6 @@ export class EventApiClient {
       } as EventItem))
 
       const events = allEvents.filter((event) => {
-        if (params.category && !getCategoryDescendants(params.category).includes(event.category ?? '')) return false
         if (keywords.length > 0) {
           const searchableText = `${event.title ?? ''} ${event.description ?? ''}`.toLocaleLowerCase()
           if (!keywords.every((keyword) => searchableText.includes(keyword))) return false

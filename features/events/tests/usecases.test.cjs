@@ -246,7 +246,14 @@ describe('EventApiClient Firestore behavior', () => {
         return query
       },
       async get() {
-        return { docs: documents.map(({ id, ...data }) => ({ id, data: () => data })) }
+        const matchedDocuments = documents.filter((document) => filters.every(({ field, operator, value }) => {
+          const fieldValue = document[field]
+          if (operator === 'in') return value.includes(fieldValue)
+          if (operator === '>=') return fieldValue >= value
+          if (operator === '<=') return fieldValue <= value
+          return fieldValue === value
+        }))
+        return { docs: matchedDocuments.map(({ id, ...data }) => ({ id, data: () => data })) }
       },
     }
     adminDb.collection = (name) => {
@@ -257,7 +264,7 @@ describe('EventApiClient Firestore behavior', () => {
   }
 
   it('searches titles and descriptions case-insensitively, requiring every keyword', async () => {
-    mockEventsQuery([
+    const query = mockEventsQuery([
       { id: 'match', title: 'Winter Celebration', description: 'Student gathering', category: 'b1100', eventDate: '2099-12-01T12:00:00.000Z' },
       { id: 'one-term', title: 'Winter party', description: 'Student social', category: 'b1100', eventDate: '2099-12-02T12:00:00.000Z' },
       { id: 'wrong-category', title: 'Winter Celebration', description: 'Student gathering', category: 'b4100', eventDate: '2099-12-03T12:00:00.000Z' },
@@ -266,6 +273,7 @@ describe('EventApiClient Firestore behavior', () => {
     const response = await new EventApiClient().getEvents({ keywords: [' WINTER, celebration '], category: 'b1000' })
     assert.equal(response.status, 200)
     assert.deepEqual((await response.json()).body.map((event) => event.id), ['match'])
+    assert.deepEqual(query.filters[0], { field: 'category', operator: 'in', value: ['b1000', 'b1100', 'b1200'] })
   })
 
   it('applies inclusive minimum and date-only maximum filters to the Firestore query', async () => {

@@ -18,9 +18,8 @@ export async function createEventAPI(body: CreateEventRequest) : Promise<{event:
 }
 
 export async function getEventsAPI(params: SearchParams = {}) : Promise<{events: EventItem[] | undefined, success: boolean}> {
-    
-    const response = await APIFetch("GET", `/api/events${generateQueryString(params)}`, {});
-    console.log(generateQueryString(params));
+    const query = generateQueryString(params);
+    const response = await APIFetch("GET", `/api/events${query}`, {});
     if (!response.ok) {
         console.error('Events were not Loaded');
         return {events: [], success: false}
