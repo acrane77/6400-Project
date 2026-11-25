@@ -4,9 +4,7 @@ import { getFirestore } from "firebase-admin/firestore";
 import { getStorage } from "firebase-admin/storage";
 
 if (!getApps().length) {
-    const useEmulators =
-        process.env.NODE_ENV === "development" &&
-        process.env.NEXT_PUBLIC_USE_FIREBASE_EMULATORS === "true";
+    const useEmulators = process.env.NEXT_PUBLIC_USE_FIREBASE_EMULATORS === "true";
 
     if (useEmulators) {
         initializeApp({

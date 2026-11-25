@@ -145,7 +145,7 @@ export default function ManageEventPage() {
 
               {matrix && (
                 <div className="mx-auto aspect-square w-full max-w-[400px] overflow-hidden rounded-md border border-border">
-                  <MatrixDisplay matrix={matrix} border={2} />
+                  <MatrixDisplay matrix={matrix} border={4} />
                 </div>
               )}
 

@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "node --require ./tests/register-typescript.cjs --test features/events/__tests__/usecases.test.cjs"
+    "test": "node --require ./tests/register-typescript.cjs --test core/tests/auth.test.cjs features/Account/tests/accountRoutes.test.cjs features/events/tests/usecases.test.cjs tests/qr.test.cjs",
+    "test:e2e": "firebase emulators:exec --only auth,firestore --project demo-event-planner \"playwright test\""
   },
   "dependencies": {
     "@base-ui/react": "^1.9.0",
@@ -24,12 +25,14 @@
     "tailwind-merge": "^3.7.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.65.1",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.3.6",
+    "jsqr": "^1.4.0",
     "tailwindcss": "^4",
     "typescript": "^5"
   },

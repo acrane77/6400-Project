@@ -42,7 +42,7 @@ export default function LoginPage() {
                 return
             }
 
-            setMessage('Account created successfully.')
+            window.location.assign('/events')
          } catch (submitError) {
             setError(
                 submitError instanceof Error
