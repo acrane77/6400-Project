@@ -60,6 +60,52 @@ export default function ManageEventPage() {
     }
   }
 
+  function downloadQR() {
+    if (!matrix) return
+
+    const border = 2
+    const cell = 10    
+    const modules = matrix.length + border * 2
+    const px = modules * cell
+
+    const canvas = document.createElement('canvas')
+    canvas.width = px
+    canvas.height = px
+
+    const ctx = canvas.getContext('2d')
+    if (!ctx) {
+      setError('Could not create image.')
+      return
+    }
+
+    ctx.fillStyle = 'white'
+    ctx.fillRect(0, 0, px, px)
+
+    ctx.fillStyle = 'black'
+    for (let r = 0; r < matrix.length; r++) {
+      for (let c = 0; c < matrix[r].length; c++) {
+        if (matrix[r][c] !== 0) {
+          ctx.fillRect((c + border) * cell, (r + border) * cell, cell, cell)
+        }
+      }
+    }
+
+    canvas.toBlob((blob) => {
+      if (!blob) {
+        setError('Could not create image.')
+        return
+      }
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `event-${id}-${role.toLowerCase()}-invite-qr.png`
+      document.body.appendChild(a)
+      a.click()
+      a.remove()
+      URL.revokeObjectURL(url)
+    }, 'image/png')
+  }
+
   async function copyInvite() {
     try {
       await navigator.clipboard.writeText(inviteUrl)
@@ -146,6 +192,13 @@ export default function ManageEventPage() {
                   <MatrixDisplay matrix={matrix} border={2} />
                 </div>
               )}
+
+              <button
+                onClick={downloadQR}
+                className="rounded-lg bg-zinc-700 px-4 py-2 text-white hover:bg-zinc-600"
+              >
+                Download QR Code
+              </button>
 
               <label className="font-semibold">
                 Invitation Link
